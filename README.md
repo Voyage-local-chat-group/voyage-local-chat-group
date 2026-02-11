@@ -26,9 +26,9 @@ Goes in /frontend/
 1. Pull this repository and open it with your preferred Code Editor
 2. Run `cd frontend` in the terminal.
 3. Setup your device:
-    a. Run `flutter emulators --launch [Emulator_Name]` to launch your Android Emulator
-    b. Run `???` to connect to your actual phone.
-4. Run `flutter run` in the terminal to open your Android Emulator/Device and run the app.
+    - Run `flutter emulators --launch [Emulator_Name]` to launch your Android Emulator
+    - Run `???` to connect to your actual phone.
+5. Run `flutter run` in the terminal to open your Android Emulator/Device and run the app.
 
 ### Build Instructions
 1. Pull this repository and open it with your preferred Code Editor
