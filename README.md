@@ -32,5 +32,5 @@ Goes in /frontend/
 
 ### Build Instructions
 1. Pull this repository and open it with your preferred Code Editor
-2. run `cd frontend` in the terminal.
+2. Run `cd frontend` in the terminal.
 3. Run `flutter build` in the terminal to compile app.
