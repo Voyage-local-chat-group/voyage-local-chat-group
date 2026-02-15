@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'home_screen.dart';
+
 class TitleScreen extends StatefulWidget {
 	const TitleScreen({super.key});
 
@@ -8,12 +10,9 @@ class TitleScreen extends StatefulWidget {
 }
 
 class _TitleScreenState extends State<TitleScreen> {
-	bool _showLoginFields = false;
 
 	void _showLoginForm() {
-		setState(() {
-			_showLoginFields = true;
-		});
+    Navigator.of(context).push(DismissibleDialog<void>());
 	}
 
 	void _placeholderCallbackForButtons() {}
@@ -89,41 +88,6 @@ class _TitleScreenState extends State<TitleScreen> {
 									style: buttonStyle,
 									child: const Text('Sign up'),
 								),
-								if (_showLoginFields) ...[
-									const SizedBox(height: 24),
-									TextField(
-										style: const TextStyle(color: Colors.white),
-										decoration: InputDecoration(
-											labelText: 'Username',
-											labelStyle: const TextStyle(color: Colors.white),
-											enabledBorder: OutlineInputBorder(
-												borderSide: BorderSide(
-													color: Colors.white.withValues(alpha: 0.6),
-												),
-											),
-											focusedBorder: const OutlineInputBorder(
-												borderSide: BorderSide(color: Colors.white),
-											),
-										),
-									),
-									const SizedBox(height: 12),
-									TextField(
-										obscureText: true,
-										style: const TextStyle(color: Colors.white),
-										decoration: InputDecoration(
-											labelText: 'Password',
-											labelStyle: const TextStyle(color: Colors.white),
-											enabledBorder: OutlineInputBorder(
-												borderSide: BorderSide(
-													color: Colors.white.withValues(alpha: 0.6),
-												),
-											),
-											focusedBorder: const OutlineInputBorder(
-												borderSide: BorderSide(color: Colors.white),
-											),
-										),
-									),
-								],
 							],
 						),
 					),
@@ -131,4 +95,117 @@ class _TitleScreenState extends State<TitleScreen> {
 			),
 		);
 	}
+}
+
+class DismissibleDialog<T> extends PopupRoute<T> {
+  @override
+  Color? get barrierColor => Colors.black.withAlpha(0x50);
+
+  // This allows the popup to be dismissed by tapping the scrim or by pressing
+  // the escape key on the keyboard.
+  @override
+  bool get barrierDismissible => true;
+
+  @override
+  String? get barrierLabel => 'Dismissible Dialog';
+
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 300);
+
+  @override
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
+    return Center(
+      // Provide DefaultTextStyle to ensure that the dialog's text style
+      // matches the rest of the text in the app.
+      child: DefaultTextStyle(
+        style: Theme.of(context).textTheme.bodyMedium!,
+        // UnconstrainedBox is used to make the dialog size itself
+        // to fit to the size of the content.
+        child: UnconstrainedBox(
+          child: Container(
+            padding: const EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Colors.white,
+            ),
+            child: Column(
+              children: <Widget>[
+                Text(
+                  'Login',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width:300,
+                  height:50,
+                  child: 
+                  Material(
+                    child: TextField(
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Username',
+                        labelStyle: const TextStyle(color: Colors.white),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.6),
+                          ),
+                        ),
+                        focusedBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width:300,
+                  height:50,
+                  child: 
+                  Material(
+                      child: TextField(
+                        obscureText: true,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          labelStyle: const TextStyle(color: Colors.white),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.6),
+                            ),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+									onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (context) => const HomeScreen())),
+									style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    backgroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.white,
+                    foregroundColor: Color(0xFF8B1E4B),
+                    disabledForegroundColor: Color(0xFF8B1E4B),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+									child: const Text('Confirm'),
+								),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
