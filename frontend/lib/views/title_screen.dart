@@ -3,98 +3,94 @@ import 'package:flutter/material.dart';
 import 'home_screen.dart';
 
 class TitleScreen extends StatefulWidget {
-	const TitleScreen({super.key});
+  const TitleScreen({super.key});
 
-	@override
-	State<TitleScreen> createState() => _TitleScreenState();
+  @override
+  State<TitleScreen> createState() => _TitleScreenState();
 }
 
 class _TitleScreenState extends State<TitleScreen> {
-
-	void _showLoginForm() {
+  void _showLoginForm() {
     Navigator.of(context).push(DismissibleDialog<void>());
-	}
+  }
 
-	void _placeholderCallbackForButtons() {}
+  void _placeholderCallbackForButtons() {}
 
-	@override
-	Widget build(BuildContext context) {
-		const backgroundColor = Color(0xFF8B1E4B);
-		final buttonStyle = ElevatedButton.styleFrom(
-			padding: const EdgeInsets.symmetric(vertical: 16.0),
-			backgroundColor: Colors.white,
-			disabledBackgroundColor: Colors.white,
-			foregroundColor: backgroundColor,
-			disabledForegroundColor: backgroundColor,
-			textStyle: const TextStyle(
-				fontSize: 16,
-				fontWeight: FontWeight.w600,
-			),
-		);
+  @override
+  Widget build(BuildContext context) {
+    const backgroundColor = Color(0xFF8B1E4B);
+    final buttonStyle = ElevatedButton.styleFrom(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      backgroundColor: Colors.white,
+      disabledBackgroundColor: Colors.white,
+      foregroundColor: backgroundColor,
+      disabledForegroundColor: backgroundColor,
+      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+    );
 
-		return Scaffold(
-			backgroundColor: backgroundColor,
-			body: SafeArea(
-				child: Center(
-					child: Padding(
-						padding: const EdgeInsets.symmetric(horizontal: 32.0),
-						child: Column(
-							mainAxisAlignment: MainAxisAlignment.center,
-							crossAxisAlignment: CrossAxisAlignment.stretch,
-							children: [
-								const Text(
-									'Local Chat App',
-									textAlign: TextAlign.center,
-									style: TextStyle(
-										color: Colors.white,
-										fontSize: 24,
-										fontWeight: FontWeight.w700,
-										letterSpacing: 1,
-									),
-								),
-								const SizedBox(height: 16),
-								Container(
-									height: 140,
-									width: 140,
-									margin: const EdgeInsets.only(bottom: 40.0),
-									decoration: BoxDecoration(
-										color: Colors.white.withValues(alpha: 0.12),
-										shape: BoxShape.circle,
-										border: Border.all(
-											color: Colors.white.withValues(alpha: 0.24),
-											width: 2,
-										),
-									),
-									child: const Center(
-										child: Text(
-											'LOGO',
-											style: TextStyle(
-												color: Colors.white,
-												fontSize: 20,
-												letterSpacing: 2,
-												fontWeight: FontWeight.w600,
-											),
-										),
-									),
-								),
-								ElevatedButton(
-									onPressed: _showLoginForm,
-									style: buttonStyle,
-									child: const Text('Log in'),
-								),
-								const SizedBox(height: 16),
-								ElevatedButton(
-									onPressed: _placeholderCallbackForButtons,
-									style: buttonStyle,
-									child: const Text('Sign up'),
-								),
-							],
-						),
-					),
-				),
-			),
-		);
-	}
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Local Chat App',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  height: 140,
+                  width: 140,
+                  margin: const EdgeInsets.only(bottom: 40.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.24),
+                      width: 2,
+                    ),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'LOGO',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        letterSpacing: 2,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: _showLoginForm,
+                  style: buttonStyle,
+                  child: const Text('Log in'),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _placeholderCallbackForButtons,
+                  style: buttonStyle,
+                  child: const Text('Sign up'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class DismissibleDialog<T> extends PopupRoute<T> {
@@ -136,26 +132,31 @@ class DismissibleDialog<T> extends PopupRoute<T> {
               children: <Widget>[
                 Text(
                   'Login',
-                  style: Theme.of(context).textTheme.headlineSmall,
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
+                      ?.copyWith(color: const Color(0xFF8B1E4B)),
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
-                  width:300,
-                  height:50,
-                  child: 
-                  Material(
+                  width: 300,
+                  height: 50,
+                  child: Material(
                     child: TextField(
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Color(0xFF5A0F2E)),
+                      cursorColor: const Color(0xFF5A0F2E),
                       decoration: InputDecoration(
                         labelText: 'Username',
-                        labelStyle: const TextStyle(color: Colors.white),
+                        labelStyle: const TextStyle(color: Color(0xFF5A0F2E)),
+                        filled: true,
+                        fillColor: const Color(0xFFF6DDE7),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.6),
+                            color: const Color(0xFF8B1E4B).withValues(alpha: 0.6),
                           ),
                         ),
                         focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white),
+                          borderSide: BorderSide(color: Color(0xFF8B1E4B)),
                         ),
                       ),
                     ),
@@ -163,44 +164,53 @@ class DismissibleDialog<T> extends PopupRoute<T> {
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
-                  width:300,
-                  height:50,
-                  child: 
-                  Material(
-                      child: TextField(
-                        obscureText: true,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          labelStyle: const TextStyle(color: Colors.white),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.6),
-                            ),
-                          ),
-                          focusedBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white),
+                  width: 300,
+                  height: 50,
+                  child: Material(
+                    child: TextField(
+                      obscureText: true,
+                      style: const TextStyle(color: Color(0xFF5A0F2E)),
+                      cursorColor: const Color(0xFF5A0F2E),
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        labelStyle: const TextStyle(color: Color(0xFF5A0F2E)),
+                        filled: true,
+                        fillColor: const Color(0xFFF6DDE7),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: const Color(0xFF8B1E4B).withValues(alpha: 0.6),
                           ),
                         ),
+                        focusedBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: Color(0xFF8B1E4B)),
+                        ),
                       ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton(
-									onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (context) => const HomeScreen())),
-									style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    backgroundColor: Colors.white,
-                    disabledBackgroundColor: Colors.white,
-                    foregroundColor: Color(0xFF8B1E4B),
-                    disabledForegroundColor: Color(0xFF8B1E4B),
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                SizedBox(
+                  width: 300,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (context) => const HomeScreen(),
+                      ),
                     ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      backgroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.white,
+                      foregroundColor: Color(0xFF8B1E4B),
+                      disabledForegroundColor: Color(0xFF8B1E4B),
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    child: const Text('Confirm'),
                   ),
-									child: const Text('Confirm'),
-								),
+                ),
               ],
             ),
           ),
