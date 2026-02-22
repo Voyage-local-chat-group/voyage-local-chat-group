@@ -9,6 +9,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+	final PageController _carouselController = PageController(viewportFraction: 0.9);
+
+	@override
+	void dispose() {
+		_carouselController.dispose();
+		super.dispose();
+	}
 
 	@override
 	Widget build(BuildContext context) {
@@ -93,6 +100,38 @@ class _HomeScreenState extends State<HomeScreen> {
 										fontSize: 24,
 										fontWeight: FontWeight.w700,
 										letterSpacing: 1,
+									),
+								),
+							),
+						),
+						Padding(
+							padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 12.0),
+							child: Container(
+								height: 200,
+								decoration: BoxDecoration(
+									color: Colors.white.withValues(alpha: 0.08),
+									borderRadius: BorderRadius.circular(16),
+									border: Border.all(
+										color: Colors.white.withValues(alpha: 0.2),
+										width: 1.5,
+									),
+								),
+								child: PageView(
+									controller: _carouselController,
+									children: List<Widget>.generate(
+										3,
+										(int index) => Padding(
+											padding: const EdgeInsets.symmetric(horizontal: 6.0),
+											child: Container(
+												decoration: BoxDecoration(
+													color: Colors.white.withValues(alpha: 0.06),
+													borderRadius: BorderRadius.circular(12),
+													border: Border.all(
+														color: Colors.white.withValues(alpha: 0.12),
+													),
+												),
+											),
+										),
 									),
 								),
 							),
