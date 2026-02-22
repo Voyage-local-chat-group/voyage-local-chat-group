@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../palette.dart';
 
 class HomeScreen extends StatefulWidget {
 	const HomeScreen({super.key});
@@ -11,17 +12,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
 	@override
 	Widget build(BuildContext context) {
-		const backgroundColor = Color(0xFF8B1E4B);
-		const backgroundColorLite = Color.fromARGB(255, 223, 92, 147);
 
 		return Scaffold(
-			backgroundColor: backgroundColor,
+			backgroundColor: primaryColourShadow,
 
 			bottomNavigationBar: NavigationBar(
-				backgroundColor: backgroundColorLite,
+				backgroundColor: primaryColour,
 				indicatorColor: Colors.white,
 				surfaceTintColor: Colors.white,
-				shadowColor:backgroundColor,
+				shadowColor:primaryColourShadow,
 				labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
 				destinations: const <Widget>[
 				NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
