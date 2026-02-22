@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'home_screen.dart';
+import '../palette.dart';
 
 class TitleScreen extends StatefulWidget {
   const TitleScreen({super.key});
@@ -18,18 +19,17 @@ class _TitleScreenState extends State<TitleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const backgroundColor = Color(0xFF8B1E4B);
     final buttonStyle = ElevatedButton.styleFrom(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       backgroundColor: Colors.white,
       disabledBackgroundColor: Colors.white,
-      foregroundColor: backgroundColor,
-      disabledForegroundColor: backgroundColor,
+      foregroundColor: primaryColour,
+      disabledForegroundColor: primaryColour,
       textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
     );
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: primaryColourShadow,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -135,7 +135,7 @@ class DismissibleDialog<T> extends PopupRoute<T> {
                   style: Theme.of(context)
                       .textTheme
                       .headlineSmall
-                      ?.copyWith(color: const Color(0xFF8B1E4B)),
+                      ?.copyWith(color: primaryColour),
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
@@ -143,20 +143,20 @@ class DismissibleDialog<T> extends PopupRoute<T> {
                   height: 50,
                   child: Material(
                     child: TextField(
-                      style: const TextStyle(color: Color(0xFF5A0F2E)),
-                      cursorColor: const Color(0xFF5A0F2E),
+                      style: const TextStyle(color: darkGrey),
+                      cursorColor: primaryColour,
                       decoration: InputDecoration(
                         labelText: 'Username',
-                        labelStyle: const TextStyle(color: Color(0xFF5A0F2E)),
+                        labelStyle: const TextStyle(color: primaryColourShadow),
                         filled: true,
-                        fillColor: const Color(0xFFF6DDE7),
+                        fillColor: primaryColourPastel,
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(
-                            color: const Color(0xFF8B1E4B).withValues(alpha: 0.6),
+                            color: primaryColour.withValues(alpha: 0.6),
                           ),
                         ),
                         focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF8B1E4B)),
+                          borderSide: BorderSide(color: primaryColour),
                         ),
                       ),
                     ),
@@ -169,20 +169,20 @@ class DismissibleDialog<T> extends PopupRoute<T> {
                   child: Material(
                     child: TextField(
                       obscureText: true,
-                      style: const TextStyle(color: Color(0xFF5A0F2E)),
-                      cursorColor: const Color(0xFF5A0F2E),
+                      style: const TextStyle(color: darkGrey),
+                      cursorColor: primaryColour,
                       decoration: InputDecoration(
                         labelText: 'Password',
-                        labelStyle: const TextStyle(color: Color(0xFF5A0F2E)),
+                        labelStyle: const TextStyle(color: primaryColourShadow),
                         filled: true,
-                        fillColor: const Color(0xFFF6DDE7),
+                        fillColor: primaryColourPastel,
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(
-                            color: const Color(0xFF8B1E4B).withValues(alpha: 0.6),
+                            color: primaryColour.withValues(alpha: 0.6),
                           ),
                         ),
                         focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF8B1E4B)),
+                          borderSide: BorderSide(color: primaryColour),
                         ),
                       ),
                     ),
@@ -201,8 +201,8 @@ class DismissibleDialog<T> extends PopupRoute<T> {
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                       backgroundColor: Colors.white,
                       disabledBackgroundColor: Colors.white,
-                      foregroundColor: Color(0xFF8B1E4B),
-                      disabledForegroundColor: Color(0xFF8B1E4B),
+                      foregroundColor: primaryColour,
+                      disabledForegroundColor: primaryColour,
                       textStyle: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
