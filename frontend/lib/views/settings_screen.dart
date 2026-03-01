@@ -11,6 +11,8 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
 	final PageController _carouselController = PageController(viewportFraction: 0.9);
 
+bool _notificationsEnabled = true;
+
 	@override
 	void dispose() {
 		_carouselController.dispose();
@@ -40,7 +42,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
 				),
 				],
 			),
-      body: Text('Settings screen :thumbsup:')
-    );
-  }
-}
+            body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              child: const Text(
+                'Settings',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                children: [
+                  ListTile(
+                    title: const Text('Notifications'),
+                    trailing: Switch(
+                      value: _notificationsEnabled,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _notificationsEnabled = value;
+                        });
+                      },
+                    ),
+                  ),
+                  ListTile(
+                    title: const Text('Account Settings'),
+                    onTap: () {
+
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('Privacy Settings'),
+                    onTap: () {
+                    },
+                  ),
+                ],
