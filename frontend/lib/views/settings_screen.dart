@@ -78,3 +78,11 @@ bool _notificationsEnabled = true;
                     },
                   ),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+        );
+    }
+}
