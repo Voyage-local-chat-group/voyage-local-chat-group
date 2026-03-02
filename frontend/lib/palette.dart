@@ -14,6 +14,7 @@ const secondaryColourShadow      = Color.fromRGBO(91,2,123,1);
 const secondaryColourHighlight   = Color.fromRGBO(124,53,149,1);
 const secondaryColourPastel      = Color.fromRGBO(206,179,215,1);
 const white                      = Color.fromRGBO(255, 255, 255, 1);
+const offWhite                   = Color.fromRGBO(245, 245, 245, 1);
 const grey                       = Color.fromRGBO(204,204,204,1);
 const darkGrey                   = Color.fromRGBO(26,26,26,1);
 const black                      = Color.fromRGBO(0,0,0,1);
