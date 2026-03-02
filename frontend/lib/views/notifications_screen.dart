@@ -1,46 +1,45 @@
 import 'package:flutter/material.dart';
+import '../widgets/navigation_bars.dart';
 import '../palette.dart';
 
 class NotificationsScreen extends StatefulWidget {
-	const NotificationsScreen({super.key});
+    const NotificationsScreen({super.key});
 
-	@override
-	State<NotificationsScreen> createState() => _NotificationsScreenState();
+    @override
+    State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-	final PageController _carouselController = PageController(viewportFraction: 0.9);
+    int _selectedNavIndex = 2;
 
-	@override
-	void dispose() {
-		_carouselController.dispose();
-		super.dispose();
-	}
-
-	@override
-	Widget build(BuildContext context) {
-
-		return Scaffold(
-			backgroundColor: primaryColourShadow,
-
-			bottomNavigationBar: NavigationBar(
-				backgroundColor: primaryColour,
-				indicatorColor: Colors.white,
-				surfaceTintColor: Colors.white,
-				shadowColor:primaryColourShadow,
-				labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-				destinations: const <Widget>[
-				NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
-				NavigationDestination(icon: Icon(Icons.chat), label: 'Chatrooms'),
-				NavigationDestination(icon: Icon(Icons.map), label: 'Map'),
-				NavigationDestination(
-					selectedIcon: Icon(Icons.settings),
-					icon: Icon(Icons.settings_outlined),
-					label: 'Settings',
-				),
-				],
-			),
-      body: Text('Notifications screen :thumbsup:')
-    );
-  }
+    @override
+    Widget build(BuildContext context) {
+        return Scaffold(
+            backgroundColor: offWhite,
+            bottomNavigationBar: BottomNavigationBarWidget(
+                selectedIndex: _selectedNavIndex,
+                onDestinationSelected: (index) {
+                    setState(() {
+                        _selectedNavIndex = index;
+                    });
+                },
+            ),
+            body: SafeArea(
+                child: Column(
+                    children: [
+                        TopNavigationBar(
+                            onProfileTap: () {
+                                // Navigate to profile
+                            },
+                        ),
+                        const Expanded(
+                            child: Center(
+                                child: Text('Notifications screen'),
+                            ),
+                        ),
+                    ],
+                ),
+            ),
+        );
+    }
 }

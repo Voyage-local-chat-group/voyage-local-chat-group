@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import '../palette.dart';
+import '../views/home_screen.dart';
+import '../views/dm_list.dart';
+import '../views/notifications_screen.dart';
+import '../views/settings_screen.dart';
+import '../views/profile_screen.dart';
 
 class TopNavigationBar extends StatelessWidget {
   final VoidCallback? onProfileTap;
@@ -18,33 +23,22 @@ class TopNavigationBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
-            children: [
-              const Text(
-                'Local Chat App',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1,
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Icon(Icons.arrow_forward, color: Colors.white),
-              const SizedBox(width: 8),
-              const Text(
-                'Home',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
+          const Text(
+            'Local Chat App',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1,
+            ),
           ),
           GestureDetector(
-            onTap: onProfileTap,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            },
             child: const CircleAvatar(
               radius: 20,
               backgroundColor: Colors.grey,
@@ -67,6 +61,30 @@ class BottomNavigationBarWidget extends StatelessWidget {
     required this.onDestinationSelected,
   });
 
+  void _navigateToScreen(BuildContext context, int index) {
+    Widget screen;
+    switch (index) {
+      case 0:
+        screen = const HomeScreen();
+        break;
+      case 1:
+        screen = const DmList();
+        break;
+      case 2:
+        screen = const NotificationsScreen();
+        break;
+      case 3:
+        screen = const SettingsScreen();
+        break;
+      default:
+        screen = const HomeScreen();
+    }
+    
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => screen),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return NavigationBar(
@@ -76,7 +94,10 @@ class BottomNavigationBarWidget extends StatelessWidget {
       shadowColor: primaryColourShadow,
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       selectedIndex: selectedIndex,
-      onDestinationSelected: onDestinationSelected,
+      onDestinationSelected: (index) {
+        onDestinationSelected(index);
+        _navigateToScreen(context, index);
+      },
       destinations: const <Widget>[
         NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
         NavigationDestination(icon: Icon(Icons.chat), label: 'Messages'),
