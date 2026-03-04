@@ -1,20 +1,22 @@
 # Place for backend development - python and flask/sqlite
 from flask import *
-from flask_restx import Api
+from flask_restx import Api, reqparse,Resource,fields
 
 app = Flask(__name__)
+api = Api(app)
 
 
 @app.route("/")
 def hello_world():
     abort(404)
 
-@app.route("/api/users",methods=["GET"])
-def showUsers():
-    users = ["No users! Set up the database!"]
-    return users
-
-@app.route("/api/chatrooms",methods=["GET"])
-def listChatrooms():
-    chatrooms = ["No chatrooms! Set up the database!"]
-    return chatrooms
+@api.route("/users")
+class Users(Resource):
+    def get(self):
+        users = ["Nothing! Set up the database!"]
+        return users
+    
+@api.route("/user/<uuid:user_id>")
+class User(Resource):
+    def get(self,user_id):
+        return user_id
