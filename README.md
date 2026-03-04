@@ -2,13 +2,25 @@
 > *This is where code goes*
 
 ## Backend Development
-Database server components, developed by [WILL DECIDE LATER]
+Database server components
 
 Technologies are currently PSQL and Python
 Goes in /backend/
 
+### Prerequisites
+- Python 3
+
+**Guide**
+1. Install Python.
+2. Open your preferred code editor, open the project and run `cd backend` in the terminal.
+3. Run `pip install -r requirements.txt` to install the required dependencies.
+
+### Test Instructions
+1. Pull this repository and open it with your preferred Code Editor
+2. Run `cd backend` in the terminal.
+
 ## Frontend Development
-App development, developed by [WILL DECIDE LATER]
+App development
 
 Technologies are currently Dart and Flutter, as well as Android Studio
 Goes in /frontend/

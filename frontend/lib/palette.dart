@@ -18,3 +18,9 @@ const offWhite                   = Color.fromRGBO(245, 245, 245, 1);
 const grey                       = Color.fromRGBO(204,204,204,1);
 const darkGrey                   = Color.fromRGBO(26,26,26,1);
 const black                      = Color.fromRGBO(0,0,0,1);
+
+const tinySpacing   = 0.5;
+const smallSpacing  = 1;
+const mediumSpacing = 2;
+const largeSpacing  = 4;
+const xlSpacing     = 8;
