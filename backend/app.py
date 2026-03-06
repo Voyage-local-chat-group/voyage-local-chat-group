@@ -1,10 +1,14 @@
 # Place for backend development - python and flask/sqlite
 from flask import *
 from flask_restx import Api, reqparse,Resource,fields
+import os
+from database_connector import *
+
 
 app = Flask(__name__)
 api = Api(app)
 
+firstBoot()
 
 @app.route("/")
 def hello_world():

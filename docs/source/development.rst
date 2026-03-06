@@ -10,14 +10,13 @@ Install Guide
 ^^^^^^^^^^^^^
 
 1. Install the latest version of Python.
-2. Clone the Git repo and run `cd backend` in your preferred code editor.
-3. Run `pip install -r requirements.txt` to get the required dependencies installed.
+2. Install PSQL and run `CREATE USER chatlus;CREATE DATABASE app;` in the PSQL terminal. This might be trickier so I need to update the install guide for this.
+3. Clone the Git repo and run `cd backend` in your preferred code editor.
+4. Run `pip install -r requirements.txt` to get the required dependencies installed.
 
 ^^^^^^^^^^^^^
 Usage Guide
 ^^^^^^^^^^^^^
-
-As our initial plan was to use a cloud computer, but this is not the case and the backend must all run from one folder, we opted to use Flask and SQLite with Python to consolidate all backend development to one platform.
 
 The API can be accessed currently at http://127.0.0.1:5000/<api_route>.
 
@@ -28,7 +27,7 @@ The API can be accessed currently at http://127.0.0.1:5000/<api_route>.
 Components
 ^^^^^^^^^^^^^
 - Database: SQLite file that lives in the /backend/ folder
-- Database Connector: Python script that connects the SQLITE file to the rest of the backend.
+- Database Connector: Python script that connects the PSQL database to the rest of the backend.
 - Location Manager: Python script that interfaces with the Location API to pull map data and push it to the frontend.
 - User Manager: Python script that manages distributing and storing updates to users.
 - Chatroom Manager: Python script that manages distributing and storing updates to chatrooms.
