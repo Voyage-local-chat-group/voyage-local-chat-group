@@ -8,7 +8,19 @@ def queryDB(sql_query):
         data = cursor.fetchall()
         cursor.close()
     db.close()
+    print(data)
     return data
+
+def executeOnDB(sql_query):
+    try:
+        db = databaseConnect()
+        with db.cursor() as cursor:
+            cursor.execute(sql_query)
+            cursor.close()
+        db.commit()
+        db.close()
+    except (psycopg2.DatabaseError, Exception) as error:
+        print(error)
 
 def receiveData(data):
     # Honestly this might be redundant.
