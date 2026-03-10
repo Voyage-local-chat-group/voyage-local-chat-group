@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/navigation_bars.dart';
+import '../widgets/navigation_bars.dart'; 
 import '../palette.dart';
 
 class DmList extends StatefulWidget {
