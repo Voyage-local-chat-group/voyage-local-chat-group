@@ -81,7 +81,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: offWhite,
       bottomNavigationBar: BottomNavigationBarWidget(
         selectedIndex: _selectedNavIndex,
         onDestinationSelected: (index) {
@@ -169,7 +168,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Text(
               username,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: darkGrey,
                 fontWeight: FontWeight.bold,
               ),
             ),

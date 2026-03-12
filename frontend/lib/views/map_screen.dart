@@ -19,7 +19,6 @@ class _MapScreenState extends State<MapScreen> {
     Widget build(BuildContext context) {
         return Scaffold(
 			key:_scaffoldKey,
-            backgroundColor: offWhite,
             body: Stack(
                 children: [
                     FlutterMap(

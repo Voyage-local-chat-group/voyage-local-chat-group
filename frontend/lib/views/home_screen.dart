@@ -3,6 +3,7 @@ import '../palette.dart';
 import '../widgets/navigation_bars.dart';
 import './map_screen.dart';
 import './messages_screen.dart';
+import './settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,7 +27,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: offWhite,
       bottomNavigationBar: BottomNavigationBarWidget(
         selectedIndex: _selectedNavIndex,
         onDestinationSelected: (index) {
@@ -51,12 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(fontSize: 18),
                     ),
                   ),
-                  const Center(
-                    child: Text(
-                      'Settings screen',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                  ),
+                  const SettingsScreen(),
                 ],
               ),
             ),
