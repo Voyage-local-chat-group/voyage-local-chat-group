@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../palette.dart';
-import '../widgets/navigation_bars.dart';
 import './messages_screen.dart';
 
 class MapScreen extends StatefulWidget {
@@ -13,8 +12,6 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-    int _selectedNavIndex = 0;
-
 	final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 	bool showBottomSheet = true;
 
@@ -23,38 +20,21 @@ class _MapScreenState extends State<MapScreen> {
         return Scaffold(
 			key:_scaffoldKey,
             backgroundColor: offWhite,
-            bottomNavigationBar: BottomNavigationBarWidget(
-                selectedIndex: _selectedNavIndex,
-                onDestinationSelected: (index) {
-                    setState(() {
-                        _selectedNavIndex = index;
-                    });
-                },
-            ),
-            body: SafeArea(
-                child: Column(
-                    children: [
-                        TopNavigationBar(
-                            onProfileTap: () {
-                                // Navigate to profile
-                            },
+            body: Stack(
+                children: [
+                    FlutterMap(
+                        options: const MapOptions(
+                            initialCenter: LatLng(51.509865, -0.118092), // Default center (London)
+                            initialZoom: 13.0,
                         ),
-                        Expanded(
-                            child: FlutterMap(
-                                options: const MapOptions(
-                                    initialCenter: LatLng(51.509865, -0.118092), // Default center (London)
-                                    initialZoom: 13.0,
-                                ),
-                                children: [
-                                    TileLayer(
-                                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                        userAgentPackageName: 'com.example.voyage_local_chat',
-                                    ),
-                                ],
+                        children: [
+                            TileLayer(
+                                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                userAgentPackageName: 'com.example.voyage_local_chat',
                             ),
-                        ),
-                    ],
-                ),
+                        ],
+                    ),
+                ],
             ),
 			floatingActionButton: FloatingActionButton.extended(
 				label: Text("Show"),
