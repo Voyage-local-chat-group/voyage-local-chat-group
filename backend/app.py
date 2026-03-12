@@ -13,19 +13,30 @@ api = Api(app)
 def hello_world():
     abort(404)
 
-@api.route("/users")
+@api.route("/users/register", methods=['POST'])
 class Users(Resource):
-    def get(self):
-        users = queryDB("SELECT * FROM users;")
-        return jsonify(users)
     
     def post(self):
         try:
             json_data = request.get_json(force=True)
             username = json_data['username']
-            password_hash = "TestPassword"
+            # TODO: Add password hashing and salting here, but for now we can just store the hash directly.
+            password_hash = json_data['password_hash']
             executeOnDB(f"INSERT INTO users(username,password_hash) VALUES ('{username}','{password_hash}');")
             return Response(status=200)
+        except Exception as Error:
+            print(Error)
+            abort(400)
+
+
+@api.route("/users/login", methods=['POST'])
+class Users(Resource):
+    def post(self):
+        try:
+            json_data = request.get_json(force=True)
+            # Perform user validation here and return a token if successful. For now we can just return a dummy token.
+            return jsonify({"access_token": "dummy_token"})
+            
         except Exception as Error:
             print(Error)
             abort(400)

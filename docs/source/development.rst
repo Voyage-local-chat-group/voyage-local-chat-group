@@ -12,7 +12,8 @@ Install Guide
 1. Install the latest version of Python.
 2. Install PSQL and run `CREATE USER chatlus;CREATE DATABASE app;` in the PSQL terminal. This might be trickier so I need to update the install guide for this.
 3. Clone the Git repo and run `cd backend` in your preferred code editor.
-4. Run `pip install -r requirements.txt` to get the required dependencies installed.
+4. Create a virtual environment with `python -m venv venv` and activate it with `venv\Scripts\activate` (Windows) or `source venv/bin/activate` (Unix).
+5. Run `pip install -r requirements.txt` to get the required dependencies installed.
 
 ^^^^^^^^^^^^^
 Usage Guide
