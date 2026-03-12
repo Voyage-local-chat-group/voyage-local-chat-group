@@ -83,8 +83,31 @@ class Login(Resource):
 @api.route("/user/<uuid:user_id>", methods=['GET','PUT'])
 class User(Resource):
     def get(self,user_id):
-        user = queryDB(f"SELECT * FROM users WHERE user_id = '{user_id}';")
-        return jsonify(user)
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            abort(401, description="Missing or invalid token")
+            
+        token = auth_header.split(' ')[1]
+        try:
+            jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            abort(401, description="Token expired")
+        except jwt.InvalidTokenError:
+            abort(401, description="Invalid token")
+            
+        user = queryDB(f"SELECT username, avatar_url, bio, account_status, created_at FROM users WHERE user_id = '{user_id}';")
+        if not user or len(user) == 0:
+            abort(404, description="User not found")
+            
+        user_data = {
+            "user_id": str(user_id),
+            "username": user[0][0],
+            "avatar_url": user[0][1],
+            "bio": user[0][2],
+            "account_status": user[0][3],
+            "created_at": user[0][4].isoformat() if hasattr(user[0][4], 'isoformat') else str(user[0][4])
+        }
+        return jsonify(user_data)
     
     def put(self):
         try:
