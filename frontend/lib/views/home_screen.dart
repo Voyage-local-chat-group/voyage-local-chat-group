@@ -27,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       bottomNavigationBar: BottomNavigationBarWidget(
         selectedIndex: _selectedNavIndex,
         onDestinationSelected: (index) {
@@ -39,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             TopNavigationBar(onProfileTap: () {}),
+            
             Expanded(
               child: IndexedStack(
                 index: _selectedNavIndex,

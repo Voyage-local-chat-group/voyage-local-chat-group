@@ -35,7 +35,7 @@ class _TitleScreenState extends State<TitleScreen> {
     );
 
     return Scaffold(
-      backgroundColor: primaryColourShadow,
+      backgroundColor: Colors.grey[850],
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -45,7 +45,7 @@ class _TitleScreenState extends State<TitleScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text(
-                  'Local Chat App',
+                  'VOYAGE',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
@@ -55,27 +55,31 @@ class _TitleScreenState extends State<TitleScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Container(
+                 Container(
                   height: 140,
                   width: 140,
                   margin: const EdgeInsets.only(bottom: 40.0),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.24),
+                      color: Colors.white.withOpacity(0.3),
                       width: 2,
                     ),
                   ),
-                  child: const Center(
-                    child: Text(
-                      'LOGO',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        letterSpacing: 2,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  child: Center(
+                    child: Image.asset(
+                      'assets/images/voyage.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.white.withOpacity(0.1),
+                          child: Icon(
+                            Icons.chat_bubble_outline,
+                            size: 50,
+                            color: Colors.white.withOpacity(0.5),
+                                               ),
+                        );
+                      },
                     ),
                   ),
                 ),
