@@ -45,7 +45,7 @@ class _MapScreenState extends State<MapScreen> {
 							showBottomSheet = false;
 							return Container(
 								height: 200,
-								color: primaryColourHighlight,
+								color: const Color.fromARGB(255, 63, 59, 61),
 								child: Center(
 									child: Column(
 									mainAxisAlignment: MainAxisAlignment.center,

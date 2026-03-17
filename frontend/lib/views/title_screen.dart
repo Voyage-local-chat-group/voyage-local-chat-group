@@ -29,8 +29,8 @@ class _TitleScreenState extends State<TitleScreen> {
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       backgroundColor: Colors.white,
       disabledBackgroundColor: Colors.white,
-      foregroundColor: primaryColour,
-      disabledForegroundColor: primaryColour,
+      foregroundColor: const Color.fromARGB(255, 59, 52, 56),
+      disabledForegroundColor: const Color.fromARGB(255, 73, 65, 70),
       textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
     );
 

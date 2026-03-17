@@ -63,7 +63,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
       backgroundColor: primaryColourPastel,
       indicatorColor: Colors.white,
       surfaceTintColor: Colors.white,
-      shadowColor: primaryColourShadow,
+      shadowColor: const Color.fromARGB(255, 62, 56, 59),
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       selectedIndex: selectedIndex,
       onDestinationSelected: onDestinationSelected,

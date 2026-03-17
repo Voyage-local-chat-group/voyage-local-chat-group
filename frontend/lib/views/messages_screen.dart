@@ -87,7 +87,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
             const SizedBox(width: 12),
             Container(
               decoration: const BoxDecoration(
-                color: primaryColour,
+                color: Color.fromARGB(255, 66, 61, 63),
                 shape: BoxShape.circle,
               ),
               child: IconButton(
