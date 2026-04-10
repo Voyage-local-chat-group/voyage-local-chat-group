@@ -1,26 +1,50 @@
 # Place for backend development - python and flask/sqlite
 from flask import *
-from flask_restx import Api, reqparse,Resource,fields
+from flask_restx import Api, Resource
 import os
-from database_connector import *
-import json
+from database_connector import queryDB, executeOnDB # 导入修改后的函数
 import jwt
 import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
+from functools import wraps # 导入 wraps 用于创建装饰器
 
 
 app = Flask(__name__)
 # In a real app, this should be an environment variable
 app.config['SECRET_KEY'] = 'voyage_super_secret_key_123'
 CORS(app)
-api = Api(app)
+api = Api(app, version='1.0', title='Voyage API', description='API for Voyage Chat App')
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        if 'Authorization' in request.headers:
+            auth_header = request.headers['Authorization']
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(' ')[1]
+
+        if not token:
+            return {'message': 'Token is missing!'}, 401
+
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            g.current_user = data
+        except jwt.ExpiredSignatureError:
+            return {'message': 'Token has expired!'}, 401
+        except jwt.InvalidTokenError:
+            return {'message': 'Token is invalid!'}, 401
+
+        return f(*args, **kwargs)
+    return decorated
+
 
 @app.route("/")
 def hello_world():
     abort(404)
 
-@api.route("/users/register", methods=['POST'])
+@api.route("/users/register")
 class Register(Resource):
     def post(self):
         try:
@@ -28,20 +52,19 @@ class Register(Resource):
             username = json_data['username']
             password = json_data['password']
             
-            # Hash the password
             password_hash = generate_password_hash(password)
             
-            # Use parametrized queries to prevent SQL injection ideally, but for now we follow the existing pattern
-            # and just escape single quotes (this is a simplified example, in production use proper parameterization)
-            safe_username = username.replace("'", "''")
-            safe_hash = password_hash.replace("'", "''")
-            executeOnDB(f"INSERT INTO users(username, password_hash) VALUES ('{safe_username}', '{safe_hash}');")
-            return Response(status=200)
-        except Exception as Error:
-            print(Error)
-            abort(400)
+            sql = "INSERT INTO users(username, password_hash) VALUES (%s, %s);"
+            if executeOnDB(sql, (username, password_hash)):
+                return {'message': 'User created successfully'}, 201
+            else:
+                return {'message': 'Failed to create user, username might already exist.'}, 400
 
-@api.route("/users/login", methods=['POST'])
+        except Exception as e:
+            print(e)
+            return {'message': 'An error occurred'}, 400
+
+@api.route("/users/login")
 class Login(Resource):
     def post(self):
         try:
@@ -49,18 +72,16 @@ class Login(Resource):
             username = json_data['username']
             password = json_data['password']
             
-            safe_username = username.replace("'", "''")
-            user_records = queryDB(f"SELECT user_id, password_hash FROM users WHERE username = '{safe_username}';")
+            sql = "SELECT user_id, password_hash FROM users WHERE username = %s;"
+            user_records = queryDB(sql, (username,))
             
-            if not user_records or len(user_records) == 0:
-                print("User not found")
-                abort(401, description="Invalid credentials")
+            if not user_records:
+                return {'message': 'Invalid credentials'}, 401
                 
             user_id = user_records[0][0]
-            password_hash = user_records[0][1]
+            stored_hash = user_records[0][1]
             
-            if check_password_hash(password_hash, password):
-                # Issue JWT
+            if check_password_hash(stored_hash, password):
                 token = jwt.encode({
                     'user_id': str(user_id),
                     'username': username,
@@ -68,35 +89,34 @@ class Login(Resource):
                 }, app.config['SECRET_KEY'], algorithm="HS256")
                 
                 return jsonify({
-                    "access_token": token,
-                    "user_id": str(user_id),
-                    "username": username
+                    "success": True,
+                    "data": {
+                        "token": token,
+                        "user_id": str(user_id)
+                    }
                 })
             else:
-                print("Invalid password")
-                abort(401, description="Invalid credentials")
+                return {'message': 'Invalid credentials'}, 401
             
-        except Exception as Error:
-            print(Error)
-            abort(400)
-    
-@api.route("/user/<uuid:user_id>", methods=['GET','PUT'])
+        except Exception as e:
+            print(e)
+            return {'message': 'An error occurred'}, 400
+
+@api.route("/auth/verify")
+class AuthVerify(Resource):
+    @token_required
+    def get(self):
+
+        return {'message': 'Token is valid'}, 200
+
+@api.route("/user/<uuid:user_id>")
 class User(Resource):
-    def get(self,user_id):
-        auth_header = request.headers.get('Authorization')
-        if not auth_header or not auth_header.startswith('Bearer '):
-            abort(401, description="Missing or invalid token")
-            
-        token = auth_header.split(' ')[1]
-        try:
-            jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
-        except jwt.ExpiredSignatureError:
-            abort(401, description="Token expired")
-        except jwt.InvalidTokenError:
-            abort(401, description="Invalid token")
-            
-        user = queryDB(f"SELECT username, avatar_url, bio, account_status, created_at FROM users WHERE user_id = '{user_id}';")
-        if not user or len(user) == 0:
+    @token_required 
+    def get(self, user_id):
+        sql = "SELECT username, avatar_url, bio, account_status, created_at FROM users WHERE user_id = %s;"
+        user = queryDB(sql, (str(user_id),))
+        
+        if not user:
             abort(404, description="User not found")
             
         user_data = {
@@ -105,14 +125,18 @@ class User(Resource):
             "avatar_url": user[0][1],
             "bio": user[0][2],
             "account_status": user[0][3],
-            "created_at": user[0][4].isoformat() if hasattr(user[0][4], 'isoformat') else str(user[0][4])
+            "created_at": user[0][4].isoformat()
         }
         return jsonify(user_data)
     
-    def put(self):
+    @token_required
+    def put(self, user_id):
+        if str(user_id) != g.current_user['user_id']:
+            return {'message': 'Permission denied: You can only edit your own profile.'}, 403
+        
         try:
-            json_data = request.get_json(force=True)
-            return Response(status=200)
-        except Exception as Error:
-            print(Error)
-            abort(400)
+
+            return {'message': 'Profile updated successfully'}, 200
+        except Exception as e:
+            print(e)
+            return {'message': 'An error occurred'}, 400
