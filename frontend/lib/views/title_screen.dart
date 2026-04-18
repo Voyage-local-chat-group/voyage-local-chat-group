@@ -157,18 +157,22 @@ class _AuthDialogFormState extends State<AuthDialogForm> {
 
     try {
       final response = await http.post(
-        Uri.parse(url),
-        body: jsonEncode({
-          'username': _usernameController.text,
-          'password': _passwordController.text,
-        }),
-      );
+  Uri.parse(url),
+  headers: {'Content-Type': 'application/json'},
+  body: jsonEncode({
+    'username': _usernameController.text,
+    'password': _passwordController.text,
+  }),
+);
+      final expectedCode = widget.isLogin ? 200 : 201;
 
-      if (response.statusCode == 200) {
-        if (widget.isLogin) {
-          final data = jsonDecode(response.body);
+      if (response.statusCode == expectedCode) {
+  if (widget.isLogin) {
+    debugPrint('LOGIN RESPONSE: ${response.body}');
+    final data = jsonDecode(response.body);
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('jwt_token', data['access_token']);
+          await prefs.setString('user_id', data['data']['user_id']);
           if (mounted) {
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (context) => const HomeScreen()),

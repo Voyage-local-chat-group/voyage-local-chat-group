@@ -70,6 +70,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
       destinations: const <Widget>[
         NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
         NavigationDestination(icon: Icon(Icons.chat), label: 'Messages'),
+        NavigationDestination(icon: Icon(Icons.map), label: 'Map'),
         NavigationDestination(icon: Icon(Icons.notifications), label: 'Notifications'),
         NavigationDestination(
           selectedIcon: Icon(Icons.settings),

@@ -52,7 +52,7 @@ class Register(Resource):
             username = json_data['username']
             password = json_data['password']
             
-            password_hash = generate_password_hash(password)
+            password_hash = generate_password_hash(password, method='pbkdf2:sha256')
             
             sql = "INSERT INTO users(username, password_hash) VALUES (%s, %s);"
             if executeOnDB(sql, (username, password_hash)):

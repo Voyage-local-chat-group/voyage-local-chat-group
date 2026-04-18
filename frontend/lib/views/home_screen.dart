@@ -3,6 +3,7 @@ import '../palette.dart';
 import '../widgets/navigation_bars.dart';
 import './map_screen.dart';
 import './messages_screen.dart';
+import './notifications_screen.dart';
 import './settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -141,7 +142,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: const [
                     SizedBox.shrink(),       
                     MessagesScreen(),      
-                    MapScreen(),              
+                    MapScreen(),
+                    NotificationsScreen(),             
                     SettingsScreen(),       
                   ],
                 ),

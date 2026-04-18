@@ -9,7 +9,7 @@ import 'views/title_screen.dart';
 import 'views/home_screen.dart';
 import 'palette.dart';
 
-const backendURL = "http://10.0.2.2:5001";
+const backendURL = "http://127.0.0.1:5001";
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
 final List<Color> appColorOptions = [
