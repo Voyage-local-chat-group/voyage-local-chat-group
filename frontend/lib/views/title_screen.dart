@@ -29,13 +29,13 @@ class _TitleScreenState extends State<TitleScreen> {
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       backgroundColor: Colors.white,
       disabledBackgroundColor: Colors.white,
-      foregroundColor: const Color.fromARGB(255, 59, 52, 56),
-      disabledForegroundColor: const Color.fromARGB(255, 73, 65, 70),
+      foregroundColor: Theme.of(context).colorScheme.primary,
+      disabledForegroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
       textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
     );
 
     return Scaffold(
-      backgroundColor: Colors.grey[850],
+      backgroundColor: Theme.of(context).colorScheme.primary,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -263,7 +263,7 @@ class _AuthDialogFormState extends State<AuthDialogForm> {
                       child: Material(
                         child: TextField(
                           controller: _usernameController,
-                          style: const TextStyle(color: darkGrey),
+                          style: const TextStyle(color: Colors.black87),
                           cursorColor: primaryColour,
                           decoration: InputDecoration(
                             labelText: 'Username',
@@ -292,7 +292,7 @@ class _AuthDialogFormState extends State<AuthDialogForm> {
                         child: TextField(
                           controller: _passwordController,
                           obscureText: true,
-                          style: const TextStyle(color: darkGrey),
+                          style: const TextStyle(color: Colors.black87),
                           cursorColor: primaryColour,
                           decoration: InputDecoration(
                             labelText: 'Password',
@@ -333,7 +333,7 @@ class _AuthDialogFormState extends State<AuthDialogForm> {
                           padding: const EdgeInsets.symmetric(vertical: 16.0),
                           backgroundColor: Colors.white,
                           disabledBackgroundColor: Colors.grey[200],
-                          foregroundColor: primaryColour,
+                          foregroundColor: Theme.of(context).colorScheme.primary,
                           disabledForegroundColor: Colors.grey,
                           textStyle: const TextStyle(
                             fontSize: 16,

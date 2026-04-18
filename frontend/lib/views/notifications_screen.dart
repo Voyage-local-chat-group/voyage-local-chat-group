@@ -45,13 +45,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         Container(
                             padding: const EdgeInsets.all(16),
                             alignment: Alignment.centerLeft,
-                            child: const Text(
+                            child: Text(
                                 'Notifications',
                                 style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: primaryColour,
-                                ),
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),        
                             ),
                         ),
                         Expanded(
@@ -69,7 +69,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                             BoxShadow(

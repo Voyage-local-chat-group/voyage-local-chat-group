@@ -20,7 +20,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       bottomNavigationBar: BottomNavigationBarWidget(
         selectedIndex: _selectedNavIndex,
         onDestinationSelected: (index) {
@@ -77,9 +76,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: const Text(
+                              child: Text(
                                 '4 nearby',
-                                style: TextStyle(color: primaryColour, fontWeight: FontWeight.bold),
+                                style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ],
@@ -161,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(right: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
