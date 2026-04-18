@@ -46,59 +46,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                                 },
                                             ),
                                             const Divider(),
-                                            Padding(
-                                                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                                                child: Text(
-                                                    'Theme Color',
-                                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                                        fontWeight: FontWeight.bold,
-                                                    ),
-                                                ),
-                                            ),
-                                            Padding(
-                                                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                                                child: Wrap(
-                                                    spacing: 16.0,
-                                                    runSpacing: 16.0,
-                                                    children: List.generate(appColorOptions.length, (index) {
-                                                        final color = appColorOptions[index];
-                                                        final isSelected = currentColor == color;
-                                                        return GestureDetector(
-                                                            onTap: () async {
-                                                                colorNotifier.value = color;
-                                                                final prefs = await SharedPreferences.getInstance();
-                                                                await prefs.setInt('theme_color_index', index);
-                                                            },
-                                                            child: Container(
-                                                                width: 48,
-                                                                height: 48,
-                                                                decoration: BoxDecoration(
-                                                                    color: color,
-                                                                    shape: BoxShape.circle,
-                                                                    border: isSelected 
-                                                                        ? Border.all(color: Theme.of(context).colorScheme.onSurface, width: 3) 
-                                                                        : null,
-                                                                    boxShadow: [
-                                                                        BoxShadow(
-                                                                            color: Colors.black.withOpacity(0.1),
-                                                                            blurRadius: 4,
-                                                                            offset: const Offset(0, 2),
-                                                                        )
-                                                                    ],
-                                                                ),
-                                                                child: isSelected 
-                                                                    ? Icon(
-                                                                        Icons.check, 
-                                                                        color: ThemeData.estimateBrightnessForColor(color) == Brightness.dark ? Colors.white : Colors.black
-                                                                      ) 
-                                                                    : null,
-                                                            ),
-                                                        );
-                                                    }),
-                                                ),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            const Divider(),
                                             SwitchListTile(
                                                 title: const Text('Notifications'),
                                                 subtitle: const Text('Receive push notifications'),

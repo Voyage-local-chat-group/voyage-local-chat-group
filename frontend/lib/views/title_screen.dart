@@ -171,7 +171,7 @@ class _AuthDialogFormState extends State<AuthDialogForm> {
     debugPrint('LOGIN RESPONSE: ${response.body}');
     final data = jsonDecode(response.body);
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('jwt_token', data['access_token']);
+          await prefs.setString('jwt_token', data['data']['token']);
           await prefs.setString('user_id', data['data']['user_id']);
           if (mounted) {
             Navigator.of(context).pushReplacement(
@@ -182,6 +182,7 @@ class _AuthDialogFormState extends State<AuthDialogForm> {
           // Registration successful, log them in automatically
           final loginResponse = await http.post(
             Uri.parse('$backendURL/users/login'),
+            headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
               'username': _usernameController.text,
               'password': _passwordController.text,
@@ -190,7 +191,7 @@ class _AuthDialogFormState extends State<AuthDialogForm> {
           if (loginResponse.statusCode == 200) {
             final data = jsonDecode(loginResponse.body);
             final prefs = await SharedPreferences.getInstance();
-            await prefs.setString('jwt_token', data['access_token']);
+            await prefs.setString('jwt_token', data['data']['token']);
             if (mounted) {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (context) => const HomeScreen()),

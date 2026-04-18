@@ -10,7 +10,6 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-    int _selectedNavIndex = 2;
 
   final List<Map<String, dynamic>> _notifications = [
         {
@@ -38,26 +37,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             'icon': Icons.location_on,
         },
     ];
-    @override
+        @override
     Widget build(BuildContext context) {
-        return Scaffold(
-            backgroundColor: offWhite,
-            bottomNavigationBar: BottomNavigationBarWidget(
-                selectedIndex: _selectedNavIndex,
-                onDestinationSelected: (index) {
-                    setState(() {
-                        _selectedNavIndex = index;
-                    });
-                },
-            ),
-            body: SafeArea(
-                child: Column(
-                    children: [
-                        TopNavigationBar(
-                            onProfileTap: () {
-                                // Navigate to profile
-                            },
-                        ),
+        return Column(
+            children: [
+
                         Container(
                             padding: const EdgeInsets.all(16),
                             alignment: Alignment.centerLeft,
@@ -121,8 +105,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           ),
                         ),
                     ],
-                ),
-            ),
-        );
+                );      
     }
 }
