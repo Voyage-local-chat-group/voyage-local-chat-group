@@ -173,6 +173,7 @@ class _AuthDialogFormState extends State<AuthDialogForm> {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('jwt_token', data['data']['token']);
           await prefs.setString('user_id', data['data']['user_id']);
+          await prefs.setString('username', _usernameController.text);
           if (mounted) {
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -192,6 +193,7 @@ class _AuthDialogFormState extends State<AuthDialogForm> {
             final data = jsonDecode(loginResponse.body);
             final prefs = await SharedPreferences.getInstance();
             await prefs.setString('jwt_token', data['data']['token']);
+            await prefs.setString('username', _usernameController.text);
             if (mounted) {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (context) => const HomeScreen()),
