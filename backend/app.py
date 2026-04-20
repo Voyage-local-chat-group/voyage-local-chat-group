@@ -257,6 +257,62 @@ class DirectMessageChatroom(Resource):
             print(e)
             return {'message': 'An error occurred'}, 400
 
+@api.route("/chatrooms/locational")
+class LocationalChatrooms(Resource):
+    @token_required
+    def get(self):
+        try:
+            rows = queryDB(
+                "SELECT chatroom_id, chatroom_name, coords_top_left, coords_bottom_right FROM chatrooms WHERE chatroom_type = 'Locational Chatroom';",
+                ()
+            )
+            chatrooms = []
+            for row in rows:
+                chatrooms.append({
+                    'chatroom_id': str(row[0]),
+                    'chatroom_name': row[1],
+                    'coords_top_left': row[2].strip() if row[2] else None,
+                    'coords_bottom_right': row[3].strip() if row[3] else None,
+                })
+            return {'success': True, 'data': chatrooms}, 200
+        except Exception as e:
+            print(e)
+            return {'message': 'An error occurred'}, 400
+
+@api.route("/chatrooms/join")
+class JoinChatroom(Resource):
+    @token_required
+    def post(self):
+        try:
+            json_data = request.get_json(force=True)
+            chatroom_id = json_data.get('chatroom_id')
+            user_id = g.current_user['user_id']
+
+            if not chatroom_id:
+                return {'success': False, 'message': 'chatroom_id required'}, 400
+
+            existing = queryDB(
+                'SELECT * FROM chatroom_memberships WHERE user_id = %s AND chatroom_id = %s AND left_at IS NULL;',
+                (user_id, chatroom_id)
+            )
+            if not existing:
+                executeOnDB(
+                    'INSERT INTO chatroom_memberships (user_id, chatroom_id) VALUES (%s, %s);',
+                    (user_id, chatroom_id)
+                )
+
+            room = queryDB(
+                'SELECT chatroom_id, chatroom_name FROM chatrooms WHERE chatroom_id = %s;',
+                (chatroom_id,)
+            )
+            if not room:
+                return {'success': False, 'message': 'Chatroom not found'}, 404
+
+            return {'success': True, 'data': {'chatroom_id': str(room[0][0]), 'chatroom_name': room[0][1]}}, 200
+        except Exception as e:
+            print(e)
+            return {'message': 'An error occurred'}, 400
+
 @api.route("/chatrooms/<uuid:chatroom_id>/messages")
 class ChatroomMessages(Resource):
     @token_required
