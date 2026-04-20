@@ -390,6 +390,9 @@ class _ChatScreenState extends State<ChatScreen> {
       if (resp.statusCode == 200 && mounted) {
         final data = jsonDecode(resp.body);
         final msgs = List<Map<String, dynamic>>.from(data is List ? data : (data['data'] ?? []));
+                setState(() {
+          _messages = msgs;
+        });
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_scrollCtrl.hasClients) {
             _scrollCtrl.jumpTo(_scrollCtrl.position.maxScrollExtent);

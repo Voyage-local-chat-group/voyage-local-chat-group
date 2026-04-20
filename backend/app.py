@@ -176,11 +176,20 @@ class MyChatrooms(Resource):
                 chatroom_type = row[2]
                 if chatroom_type == 'Direct Message':
                     type_label = 'dm'
+                    other = queryDB("""
+                        SELECT u.username FROM users u
+                        JOIN chatroom_memberships cm ON u.user_id = cm.user_id
+                        WHERE cm.chatroom_id = %s AND u.user_id != %s AND cm.left_at IS NULL
+                        LIMIT 1;
+                    """, (str(row[0]), user_id))
+                    display_name = other[0][0] if other else row[1]
                 else:
                     type_label = 'group'
+                    display_name = row[1]
                 chatrooms.append({
                     'chatroom_id': str(row[0]),
                     'chatroom_name': row[1],
+                    'display_name': display_name,
                     'type': type_label
                 })
 
@@ -199,7 +208,6 @@ class DirectMessageChatroom(Resource):
             other_user_id = json_data['user_id']
             current_user_id = g.current_user['user_id']
 
-            # 检查是否已存在 DM 聊天室
             sql = """
                 SELECT c.chatroom_id FROM chatrooms c
                 JOIN chatroom_memberships cm1 ON c.chatroom_id = cm1.chatroom_id
@@ -212,7 +220,6 @@ class DirectMessageChatroom(Resource):
             if existing:
                 return {'data': {'chatroom_id': str(existing[0][0])}}, 200
 
-            # 获取两个用户的用户名来生成聊天室名称
             user1 = queryDB("SELECT username FROM users WHERE user_id = %s;", (current_user_id,))
             user2 = queryDB("SELECT username FROM users WHERE user_id = %s;", (other_user_id,))
             if not user1 or not user2:
@@ -220,14 +227,12 @@ class DirectMessageChatroom(Resource):
 
             name = f"{user1[0][0]}__{user2[0][0]}"
 
-            # ✅ 修复：用 executeOnDB 插入聊天室，确保事务提交
             if not executeOnDB(
                 "INSERT INTO chatrooms(chatroom_type, chatroom_name) VALUES ('Direct Message', %s);",
                 (name,)
             ):
                 return {'message': 'Failed to create chatroom'}, 500
 
-            # 获取刚插入的聊天室 ID
             result = queryDB(
                 "SELECT chatroom_id FROM chatrooms WHERE chatroom_name = %s AND chatroom_type = 'Direct Message' ORDER BY chatroom_id DESC LIMIT 1;",
                 (name,)
@@ -237,7 +242,6 @@ class DirectMessageChatroom(Resource):
 
             chatroom_id = str(result[0][0])
 
-            # 添加两个成员
             executeOnDB(
                 "INSERT INTO chatroom_memberships(user_id, chatroom_id) VALUES (%s, %s);",
                 (current_user_id, chatroom_id)
