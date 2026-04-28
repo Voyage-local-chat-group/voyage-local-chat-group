@@ -12,31 +12,31 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
 
   final List<Map<String, dynamic>> _notifications = [
-        {
-            'title': 'New Message',
-            'message': 'John sent you a message',
-            'time': '5 min ago',
-            'icon': Icons.message,
-        },
-        {
-            'title': 'Friend Request',
-            'message': 'Ben wants to be friends',
-            'time': '1 hour ago',
-            'icon': Icons.person_add,
-        },
-        {
-            'title': 'Mention',
-            'message': 'Mike mentioned you in chat',
-            'time': '10 minutes ago',
-            'icon': Icons.tag,
-        },
-        {
-            'title': 'Location Update',
-            'message': 'New chatroom near you',
-            'time': 'Yesterday',
-            'icon': Icons.location_on,
-        },
-    ];
+    {
+        'title': 'New Message',
+        'message': 'You have a new direct message',
+        'time': '',
+        'icon': Icons.message,
+    },
+    {
+        'title': 'New Chatroom Nearby',
+        'message': 'A new local chatroom has appeared near you',
+        'time': '',
+        'icon': Icons.location_on,
+    },
+    {
+        'title': 'New Member',
+        'message': 'Someone joined your local chatroom',
+        'time': '',
+        'icon': Icons.group_add,
+    },
+    {
+        'title': 'New Group Chat',
+        'message': 'You have been added to a group chat',
+        'time': '',
+        'icon': Icons.chat_bubble,
+    },
+];
         @override
     Widget build(BuildContext context) {
         return Column(
