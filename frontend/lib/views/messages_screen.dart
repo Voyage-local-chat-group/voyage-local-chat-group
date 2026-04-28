@@ -72,10 +72,8 @@ class _MessagesScreenState extends State<MessagesScreen>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => ChatScreen(
-                chatroomId: chatroomId,
-                displayName: displayName,
-              ),
+              builder: (_) =>
+                  ChatScreen(chatroomId: chatroomId, displayName: displayName),
             ),
           );
         },
@@ -128,9 +126,11 @@ class _ChatroomList extends StatelessWidget {
   Widget build(BuildContext context) {
     if (chatrooms.isEmpty) {
       return const Center(
-        child: Text('No conversations yet.\nTap ✏️ to start one.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey)),
+        child: Text(
+          'No conversations yet.\nTap ✏️ to start one.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey),
+        ),
       );
     }
     return ListView.separated(
@@ -146,13 +146,20 @@ class _ChatroomList extends StatelessWidget {
               style: TextStyle(color: primaryColour),
             ),
           ),
-          title: Text(room['display_name'] ?? 'Chat',
-              style: const TextStyle(fontWeight: FontWeight.w600)),
-          subtitle: Text(room['last_message'] ?? '',
-              maxLines: 1, overflow: TextOverflow.ellipsis),
+          title: Text(
+            room['display_name'] ?? 'Chat',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          subtitle: Text(
+            room['last_message'] ?? '',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           trailing: room['last_time'] != null
-              ? Text(room['last_time'],
-                  style: const TextStyle(fontSize: 11, color: Colors.grey))
+              ? Text(
+                  room['last_time'],
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                )
               : null,
           onTap: () {
             Navigator.push(
@@ -175,10 +182,7 @@ class _UserSearchSheet extends StatefulWidget {
   final String token;
   final void Function(String chatroomId, String displayName) onChatroomReady;
 
-  const _UserSearchSheet({
-    required this.token,
-    required this.onChatroomReady,
-  });
+  const _UserSearchSheet({required this.token, required this.onChatroomReady});
 
   @override
   State<_UserSearchSheet> createState() => _UserSearchSheetState();
@@ -246,9 +250,9 @@ class _UserSearchSheetState extends State<_UserSearchSheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
     if (mounted) setState(() => _opening = false);
@@ -280,9 +284,10 @@ class _UserSearchSheetState extends State<_UserSearchSheet> {
               ),
               const Padding(
                 padding: EdgeInsets.only(bottom: 12),
-                child: Text('New Message',
-                    style: TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold)),
+                child: Text(
+                  'New Message',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -389,8 +394,10 @@ class _ChatScreenState extends State<ChatScreen> {
       );
       if (resp.statusCode == 200 && mounted) {
         final data = jsonDecode(resp.body);
-        final msgs = List<Map<String, dynamic>>.from(data is List ? data : (data['data'] ?? []));
-                setState(() {
+        final msgs = List<Map<String, dynamic>>.from(
+          data is List ? data : (data['data'] ?? []),
+        );
+        setState(() {
           _messages = msgs;
         });
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -405,10 +412,29 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _sendMessage() async {
     final text = _msgCtrl.text.trim();
     if (text.isEmpty || _sending || _token == null) return;
-    setState(() => _sending = true);
-    _msgCtrl.clear();
+
+    final tempId = DateTime.now().millisecondsSinceEpoch.toString();
+    final optimisticMessage = {
+      'content': text,
+      'sender_username': _myUsername,
+      'failed': false,
+      'temp_id': tempId,
+    };
+
+    setState(() {
+      _sending = true;
+      _messages.add(optimisticMessage);
+      _msgCtrl.clear();
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollCtrl.hasClients) {
+        _scrollCtrl.jumpTo(_scrollCtrl.position.maxScrollExtent);
+      }
+    });
+
     try {
-      await http.post(
+      final resp = await http.post(
         Uri.parse('$backendURL/chatrooms/${widget.chatroomId}/messages'),
         headers: {
           'Authorization': 'Bearer $_token',
@@ -416,9 +442,33 @@ class _ChatScreenState extends State<ChatScreen> {
         },
         body: jsonEncode({'content': text}),
       );
-      await _fetchMessages();
-    } catch (_) {}
-    if (mounted) setState(() => _sending = false);
+
+      if (resp.statusCode == 200 || resp.statusCode == 201) {
+        await _fetchMessages();
+      } else {
+        if (mounted) {
+          setState(() {
+            final index = _messages.indexWhere((m) => m['temp_id'] == tempId);
+            if (index != -1) {
+              _messages[index]['failed'] = true;
+            }
+          });
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          final index = _messages.indexWhere((m) => m['temp_id'] == tempId);
+          if (index != -1) {
+            _messages[index]['failed'] = true;
+          }
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _sending = false);
+      }
+    }
   }
 
   @override
@@ -430,12 +480,17 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: _messages.isEmpty
                 ? const Center(
-                    child: Text('No messages yet. Say hello! 👋',
-                        style: TextStyle(color: Colors.grey)))
+                    child: Text(
+                      'No messages yet. Say hello! 👋',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  )
                 : ListView.builder(
                     controller: _scrollCtrl,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 20),
+                      horizontal: 16,
+                      vertical: 20,
+                    ),
                     itemCount: _messages.length,
                     itemBuilder: (_, i) {
                       final msg = _messages[i];
@@ -444,6 +499,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         text: msg['content'] ?? '',
                         isMe: isMe,
                         senderName: msg['sender_username'] ?? '',
+                        failed: msg['failed'] == true,
                       );
                     },
                   ),
@@ -485,7 +541,9 @@ class _ChatScreenState extends State<ChatScreen> {
                     hintStyle: TextStyle(color: Colors.grey),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 14),
+                      horizontal: 20,
+                      vertical: 14,
+                    ),
                   ),
                   onSubmitted: (_) => _sendMessage(),
                 ),
@@ -513,20 +571,30 @@ class _MessageBubble extends StatelessWidget {
   final String text;
   final bool isMe;
   final String senderName;
+  final bool failed;
 
   const _MessageBubble({
     required this.text,
     required this.isMe,
     required this.senderName,
+    required this.failed,
   });
 
   @override
   Widget build(BuildContext context) {
+    final bubbleColor = isMe
+        ? (failed ? Colors.red.shade100 : primaryColour)
+        : Colors.white;
+    final textColor = isMe
+        ? (failed ? Colors.red.shade900 : Colors.white)
+        : darkGrey;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
-        crossAxisAlignment:
-            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: isMe
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.only(bottom: 4, left: 8, right: 8),
@@ -542,13 +610,14 @@ class _MessageBubble extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isMe ? primaryColour : Colors.white,
+              color: bubbleColor,
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(20),
                 topRight: const Radius.circular(20),
                 bottomLeft: Radius.circular(isMe ? 20 : 0),
                 bottomRight: Radius.circular(isMe ? 0 : 20),
               ),
+              border: failed ? Border.all(color: Colors.red) : null,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.04),
@@ -557,14 +626,20 @@ class _MessageBubble extends StatelessWidget {
                 ),
               ],
             ),
-            child: Text(
-              text,
-              style: TextStyle(
-                color: isMe ? Colors.white : darkGrey,
-                fontSize: 15,
+            child: Text(text, style: TextStyle(color: textColor, fontSize: 15)),
+          ),
+          if (failed)
+            Padding(
+              padding: const EdgeInsets.only(top: 4, right: 8, left: 8),
+              child: Text(
+                'Failed to send',
+                style: TextStyle(
+                  color: Colors.red.shade700,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
