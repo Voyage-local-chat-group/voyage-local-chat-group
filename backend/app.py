@@ -356,3 +356,78 @@ class ChatroomMessages(Resource):
         except Exception as e:
             print(e)
             return {'message': 'An error occurred'}, 400
+        
+
+
+@api.route("/chatrooms/group")
+class GroupChat(Resource):
+    @token_required
+    def post(self):
+        try:
+            json_data = request.get_json(force=True)
+            member_ids = json_data.get('member_ids', [])
+            current_user = g.current_user['user_id']
+
+            if current_user not in member_ids:
+                member_ids.append(current_user)
+
+            member_ids = sorted(set(member_ids))
+
+            if len(member_ids) < 2:
+                return {'message': 'Not enough members'}, 400
+
+            sql = """
+                SELECT c.chatroom_id
+                FROM chatrooms c
+                JOIN chatroom_memberships cm ON c.chatroom_id = cm.chatroom_id
+                WHERE c.chatroom_type = 'Private Group'
+                AND cm.left_at IS NULL
+                AND cm.user_id = ANY(%s)
+                GROUP BY c.chatroom_id
+                HAVING COUNT(DISTINCT cm.user_id) = %s
+                AND COUNT(DISTINCT cm.user_id) = (
+                    SELECT COUNT(DISTINCT cm2.user_id)
+                    FROM chatroom_memberships cm2
+                    WHERE cm2.chatroom_id = c.chatroom_id
+                    AND cm2.left_at IS NULL
+                );
+            """
+
+            existing = queryDB(sql, (member_ids, len(member_ids)))
+            if existing:
+                return {'data': {'chatroom_id': str(existing[0][0])}}, 200
+
+            placeholders = ','.join(['%s'] * len(member_ids))
+            rows = queryDB(
+                f"SELECT username FROM users WHERE user_id IN ({placeholders});",
+                tuple(member_ids)
+            )
+            names = [r[0] for r in rows]
+            group_name = ", ".join(names)
+
+            executeOnDB(
+                "INSERT INTO chatrooms(chatroom_type, chatroom_name) VALUES ('Private Group', %s);",
+                (group_name,)
+            )
+
+            new_room = queryDB(
+                "SELECT chatroom_id FROM chatrooms WHERE chatroom_name = %s AND chatroom_type = 'Private Group' ORDER BY chatroom_id DESC LIMIT 1;",
+                (group_name,)
+            )
+
+            if not new_room:
+                return {'message': 'Failed'}, 500
+
+            chatroom_id = str(new_room[0][0])
+
+            for uid in member_ids:
+                executeOnDB(
+                    "INSERT INTO chatroom_memberships(user_id, chatroom_id) VALUES (%s, %s);",
+                    (uid, chatroom_id)
+                )
+
+            return {'data': {'chatroom_id': chatroom_id, 'name': group_name}}, 201
+
+        except Exception as e:
+            print(e)
+            return {'message': 'Error'}, 400

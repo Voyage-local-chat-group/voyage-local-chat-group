@@ -191,6 +191,7 @@ class _UserSearchSheet extends StatefulWidget {
 class _UserSearchSheetState extends State<_UserSearchSheet> {
   final TextEditingController _searchCtrl = TextEditingController();
   List<Map<String, dynamic>> _results = [];
+  final Set<String> _selected = {};
   bool _loading = false;
   bool _opening = false;
 
@@ -202,7 +203,10 @@ class _UserSearchSheetState extends State<_UserSearchSheet> {
 
   Future<void> _search(String q) async {
     if (q.trim().isEmpty) {
-      setState(() => _results = []);
+      setState(() {
+        _results = [];
+        _selected.clear();
+      });
       return;
     }
     setState(() => _loading = true);
@@ -213,12 +217,27 @@ class _UserSearchSheetState extends State<_UserSearchSheet> {
       );
       if (resp.statusCode == 200 && mounted) {
         final data = jsonDecode(resp.body);
+        final list = List<Map<String, dynamic>>.from(data['data'] ?? []);
         setState(() {
-          _results = List<Map<String, dynamic>>.from(data['data'] ?? []);
+          _results = list;
+          _selected.removeWhere(
+            (id) => !_results.any((u) => u['user_id'].toString() == id),
+          );
         });
       }
     } catch (_) {}
     if (mounted) setState(() => _loading = false);
+  }
+
+  void _toggle(Map<String, dynamic> user) {
+    final id = user['user_id'].toString();
+    setState(() {
+      if (_selected.contains(id)) {
+        _selected.remove(id);
+      } else {
+        _selected.add(id);
+      }
+    });
   }
 
   Future<void> _openDm(Map<String, dynamic> user) async {
@@ -235,31 +254,57 @@ class _UserSearchSheetState extends State<_UserSearchSheet> {
       );
       if (resp.statusCode == 200 || resp.statusCode == 201) {
         final data = jsonDecode(resp.body);
-        final chatroomId = data['data']['chatroom_id'].toString();
-        final displayName = user['username'] as String;
+        final id = data['data']['chatroom_id'].toString();
+        final name = user['username'];
         if (mounted) {
-          Navigator.of(context).pop();
-          widget.onChatroomReady(chatroomId, displayName);
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not open chat. Try again.')),
-          );
+          Navigator.pop(context);
+          widget.onChatroomReady(id, name);
         }
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
-    }
+    } catch (_) {}
     if (mounted) setState(() => _opening = false);
+  }
+
+  Future<void> _openGroup() async {
+    if (_opening) return;
+    setState(() => _opening = true);
+    try {
+      final resp = await http.post(
+        Uri.parse('$backendURL/chatrooms/group'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'member_ids': _selected.toList()}),
+      );
+      if (resp.statusCode == 200 || resp.statusCode == 201) {
+        final data = jsonDecode(resp.body);
+        final id = data['data']['chatroom_id'].toString();
+        final name = data['data']['name'] ?? 'Group';
+        if (mounted) {
+          Navigator.pop(context);
+          widget.onChatroomReady(id, name);
+        }
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _opening = false);
+  }
+
+  void _talk() {
+    if (_selected.isEmpty) return;
+    if (_selected.length == 1) {
+      final id = _selected.first;
+      final user = _results.firstWhere((u) => u['user_id'].toString() == id);
+      _openDm(user);
+    } else {
+      _openGroup();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final active = _selected.isNotEmpty && !_opening;
+
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
       minChildSize: 0.4,
@@ -316,6 +361,9 @@ class _UserSearchSheetState extends State<_UserSearchSheet> {
                         itemCount: _results.length,
                         itemBuilder: (_, i) {
                           final user = _results[i];
+                          final id = user['user_id'].toString();
+                          final sel = _selected.contains(id);
+
                           return ListTile(
                             leading: CircleAvatar(
                               backgroundColor: primaryColour.withOpacity(0.15),
@@ -325,10 +373,44 @@ class _UserSearchSheetState extends State<_UserSearchSheet> {
                               ),
                             ),
                             title: Text(user['username'] ?? ''),
-                            onTap: () => _openDm(user),
+                            trailing: Checkbox(
+                              value: sel,
+                              onChanged: (_) => _toggle(user),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            onTap: () => _toggle(user),
                           );
                         },
                       ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: SizedBox(
+                    height: 44,
+                    width: 44,
+                    child: ElevatedButton(
+                      onPressed: active ? _talk : null,
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        backgroundColor: active
+                            ? primaryColour
+                            : Colors.grey[300],
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('💬', style: TextStyle(fontSize: 22)),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
