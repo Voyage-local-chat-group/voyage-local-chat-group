@@ -229,6 +229,44 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  Future<void> _resetChatrooms() async {
+    if (_token == null) return;
+    if (_chatrooms.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('No chatrooms to delete')));
+      }
+      return;
+    }
+    try {
+      final response = await http.delete(
+        Uri.parse('$backendURL/chatrooms/locational'),
+        headers: {'Authorization': 'Bearer $_token'},
+      );
+      if (response.statusCode == 200) {
+        await _fetchChatrooms(); // Refresh the map
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('All locational chatrooms deleted!')),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to delete chatrooms')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error deleting chatrooms')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final markers = _chatrooms.map((room) {
@@ -297,6 +335,14 @@ class _MapScreenState extends State<MapScreen> {
                       ),
                     ),
                   ),
+                Positioned(
+                  top: 10,
+                  left: 10,
+                  child: ElevatedButton(
+                    onPressed: _resetChatrooms,
+                    child: const Text('Reset Chatrooms'),
+                  ),
+                ),
               ],
             ),
       floatingActionButton: FloatingActionButton(

@@ -311,6 +311,28 @@ class LocationalChatrooms(Resource):
             print(e)
             return {'message': 'An error occurred'}, 400
 
+    @token_required
+    def delete(self):
+        try:
+            # Delete all related data first
+            executeOnDB(
+                "DELETE FROM messages WHERE chatroom_id IN (SELECT chatroom_id FROM chatrooms WHERE chatroom_type = 'Locational Chatroom');",
+                ()
+            )
+            executeOnDB(
+                "DELETE FROM chatroom_memberships WHERE chatroom_id IN (SELECT chatroom_id FROM chatrooms WHERE chatroom_type = 'Locational Chatroom');",
+                ()
+            )
+            # Then delete the chatrooms
+            executeOnDB(
+                "DELETE FROM chatrooms WHERE chatroom_type = 'Locational Chatroom';",
+                ()
+            )
+            return {'success': True, 'message': 'All locational chatrooms deleted'}, 200
+        except Exception as e:
+            print(e)
+            return {'message': 'An error occurred'}, 400
+
 @api.route("/chatrooms/join")
 class JoinChatroom(Resource):
     @token_required
