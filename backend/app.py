@@ -279,6 +279,38 @@ class LocationalChatrooms(Resource):
             print(e)
             return {'message': 'An error occurred'}, 400
 
+    @token_required
+    def post(self):
+        try:
+            json_data = request.get_json(force=True)
+            chatroom_name = json_data.get('chatroom_name')
+            coords_top_left = json_data.get('coords_top_left')
+            coords_bottom_right = json_data.get('coords_bottom_right')
+
+            if not chatroom_name or not coords_top_left or not coords_bottom_right:
+                return {'message': 'chatroom_name, coords_top_left, and coords_bottom_right are required'}, 400
+
+            executeOnDB(
+                "INSERT INTO chatrooms(chatroom_type, chatroom_name, coords_top_left, coords_bottom_right) VALUES ('Locational Chatroom', %s, %s, %s);",
+                (chatroom_name, coords_top_left, coords_bottom_right)
+            )
+
+            new_room = queryDB(
+                "SELECT chatroom_id FROM chatrooms WHERE chatroom_name = %s AND chatroom_type = 'Locational Chatroom' ORDER BY chatroom_id DESC LIMIT 1;",
+                (chatroom_name,)
+            )
+
+            if not new_room:
+                return {'message': 'Failed to create chatroom'}, 500
+
+            chatroom_id = str(new_room[0][0])
+
+            return {'success': True, 'data': {'chatroom_id': chatroom_id, 'chatroom_name': chatroom_name}}, 201
+
+        except Exception as e:
+            print(e)
+            return {'message': 'An error occurred'}, 400
+
 @api.route("/chatrooms/join")
 class JoinChatroom(Resource):
     @token_required

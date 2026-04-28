@@ -156,16 +156,57 @@ class _MapScreenState extends State<MapScreen> {
           _bottomSheetController?.close();
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => ChatScreen(
-                chatroomId: chatroomId,
-                displayName: displayName,
-              ),
+              builder: (context) =>
+                  ChatScreen(chatroomId: chatroomId, displayName: displayName),
             ),
           );
         }
       }
     } catch (e) {
       // 忽略网络错误
+    }
+  }
+
+  Future<void> _createLocationalChatroom() async {
+    if (_token == null) return;
+    // For simplicity, use a fixed small area around Portsmouth
+    const topLeft = '50.81,-1.10';
+    const bottomRight = '50.79,-1.08';
+    const name = 'Portsmouth Local Chat';
+
+    try {
+      final response = await http.post(
+        Uri.parse('$backendURL/chatrooms/locational'),
+        headers: {
+          'Authorization': 'Bearer $_token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'chatroom_name': name,
+          'coords_top_left': topLeft,
+          'coords_bottom_right': bottomRight,
+        }),
+      );
+      if (response.statusCode == 201) {
+        await _fetchChatrooms(); // Refresh the map
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Locational chatroom created!')),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to create chatroom')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error creating chatroom')),
+        );
+      }
     }
   }
 
@@ -206,6 +247,11 @@ class _MapScreenState extends State<MapScreen> {
                 MarkerLayer(markers: markers),
               ],
             ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _createLocationalChatroom,
+        child: const Icon(Icons.add),
+        tooltip: 'Create Locational Chatroom',
+      ),
     );
   }
 }
