@@ -23,6 +23,10 @@ class _MapScreenState extends State<MapScreen> {
   Map<String, dynamic>? _selectedRoom;
   String? _token;
   bool _loading = true;
+  final MapController _mapController = MapController();
+  double? _mouseX;
+  double? _mouseY;
+  LatLng? _createLocation;
 
   @override
   void initState() {
@@ -169,10 +173,24 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _createLocationalChatroom() async {
     if (_token == null) return;
-    // For simplicity, use a fixed small area around Portsmouth
-    const topLeft = '50.81,-1.10';
-    const bottomRight = '50.79,-1.08';
-    const name = 'Portsmouth Local Chat';
+    if (_createLocation == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please tap on the map to select a location first'),
+          ),
+        );
+      }
+      return;
+    }
+    final lat = _createLocation!.latitude;
+    final lng = _createLocation!.longitude;
+    final topLeft =
+        '${(lat + 0.005).toStringAsFixed(4)},${(lng - 0.005).toStringAsFixed(4)}';
+    final bottomRight =
+        '${(lat - 0.005).toStringAsFixed(4)},${(lng + 0.005).toStringAsFixed(4)}';
+    final name =
+        'Local Chat at ${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}';
 
     try {
       final response = await http.post(
@@ -189,6 +207,7 @@ class _MapScreenState extends State<MapScreen> {
       );
       if (response.statusCode == 201) {
         await _fetchChatrooms(); // Refresh the map
+        setState(() => _createLocation = null); // Reset after creation
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Locational chatroom created!')),
@@ -234,17 +253,50 @@ class _MapScreenState extends State<MapScreen> {
       key: _scaffoldKey,
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : FlutterMap(
-              options: const MapOptions(
-                initialCenter: LatLng(50.7989, -1.0914),
-                initialZoom: 14.0,
-              ),
+          : Stack(
               children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.example.voyage_local_chat',
+                MouseRegion(
+                  onHover: (event) {
+                    setState(() {
+                      _mouseX = event.localPosition.dx;
+                      _mouseY = event.localPosition.dy;
+                    });
+                  },
+                  onExit: (_) => setState(() {
+                    _mouseX = null;
+                    _mouseY = null;
+                  }),
+                  child: FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(
+                      initialCenter: const LatLng(50.7989, -1.0914),
+                      initialZoom: 14.0,
+                      onTap: (tapPosition, latLng) =>
+                          setState(() => _createLocation = latLng),
+                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate:
+                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        userAgentPackageName: 'com.example.voyage_local_chat',
+                      ),
+                      MarkerLayer(markers: markers),
+                    ],
+                  ),
                 ),
-                MarkerLayer(markers: markers),
+                if (_mouseX != null && _mouseY != null)
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: Container(
+                      color: Colors.white.withOpacity(0.8),
+                      padding: const EdgeInsets.all(8),
+                      child: Text(
+                        '${_mouseX!.toStringAsFixed(0)}, ${_mouseY!.toStringAsFixed(0)}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
               ],
             ),
       floatingActionButton: FloatingActionButton(
