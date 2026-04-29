@@ -20,7 +20,7 @@ class TopNavigationBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Text(
-            'Local Chat App',
+            'Voyage',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white,

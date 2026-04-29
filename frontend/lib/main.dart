@@ -102,7 +102,6 @@ class _StartupGateState extends State<StartupGate> {
     if (!mounted) return;
 
     if (token == null || token.isEmpty) {
-      // 本地无 token，直接去登录页
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const TitleScreen()),
       );
