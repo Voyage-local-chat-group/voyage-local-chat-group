@@ -361,8 +361,13 @@ class _MapScreenState extends State<MapScreen> {
 
   Color _colourFromUserId(String? userId) {
     if (userId == null || userId.isEmpty) return primaryColour;
-    final hash = userId.replaceAll('-', '').hashCode;
-    final hue = (hash.abs() % 360).toDouble();
-    return HSLColor.fromAHSL(1.0, hue, 0.6, 0.5).toColor();
+    final cleaned = userId.replaceAll('-', '');
+
+    int hash = 0;
+    for (int i = 0; i < cleaned.length; i++) {
+      hash = cleaned.codeUnitAt(i) + ((hash << 5) - hash);
+    }
+    final hue = (hash * 137.508) % 360;
+    return HSLColor.fromAHSL(1.0, hue, 0.75, 0.55).toColor();
   }
 }
