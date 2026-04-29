@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/navigation_bars.dart'; 
+import '../widgets/navigation_bars.dart';
 import '../palette.dart';
 
 class DmList extends StatefulWidget {
@@ -27,16 +27,8 @@ class _DmListState extends State<DmList> {
       body: SafeArea(
         child: Column(
           children: [
-            TopNavigationBar(
-              onProfileTap: () {
-                // Navigate to profile
-              },
-            ),
-            const Expanded(
-              child: Center(
-                child: Text('Messages screen'),
-              ),
-            ),
+            TopNavigationBar(onProfileTap: () {}),
+            const Expanded(child: Center(child: Text('Messages screen'))),
           ],
         ),
       ),

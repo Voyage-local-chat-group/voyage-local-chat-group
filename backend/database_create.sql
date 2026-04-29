@@ -30,6 +30,8 @@ CREATE TABLE chatrooms(
     chatroom_name VARCHAR(64) NOT NULL,
     coords_bottom_right CHAR(64),
     coords_top_left CHAR(64)
+    author_id UUID,
+    FOREIGN KEY (author_id) REFERENCES users(user_id)
 );
 
 CREATE TABLE chatroom_memberships(

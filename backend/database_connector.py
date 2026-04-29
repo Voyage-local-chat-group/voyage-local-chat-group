@@ -46,10 +46,6 @@ def executeOnDB(sql_query, params=None):
             db.close()
     return success
 
-def receiveData(data):
-    # Honestly this might be redundant.
-    return None
-
 # Resets the database to the schema depicted in database_create.sql
 def firstBoot():
     try:

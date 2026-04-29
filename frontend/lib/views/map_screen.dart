@@ -206,8 +206,8 @@ class _MapScreenState extends State<MapScreen> {
         }),
       );
       if (response.statusCode == 201) {
-        await _fetchChatrooms(); // Refresh the map
-        setState(() => _createLocation = null); // Reset after creation
+        await _fetchChatrooms();
+        setState(() => _createLocation = null);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Locational chatroom created!')),
@@ -245,7 +245,7 @@ class _MapScreenState extends State<MapScreen> {
         headers: {'Authorization': 'Bearer $_token'},
       );
       if (response.statusCode == 200) {
-        await _fetchChatrooms(); // Refresh the map
+        await _fetchChatrooms();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('All locational chatrooms deleted!')),
@@ -280,7 +280,13 @@ class _MapScreenState extends State<MapScreen> {
           onTap: () => _onMarkerTap(room),
           child: Icon(
             Icons.chat_bubble,
-            color: isSelected ? primaryColour : primaryColourPastel,
+            color: isSelected
+                ? _colourFromUserId(
+                    room['author_id']?.toString(),
+                  ).withOpacity(1.0)
+                : _colourFromUserId(
+                    room['author_id']?.toString(),
+                  ).withOpacity(0.6),
             size: 36,
           ),
         ),
@@ -351,5 +357,12 @@ class _MapScreenState extends State<MapScreen> {
         tooltip: 'Create Locational Chatroom',
       ),
     );
+  }
+
+  Color _colourFromUserId(String? userId) {
+    if (userId == null || userId.isEmpty) return primaryColour;
+    final hash = userId.replaceAll('-', '').hashCode;
+    final hue = (hash.abs() % 360).toDouble();
+    return HSLColor.fromAHSL(1.0, hue, 0.6, 0.5).toColor();
   }
 }

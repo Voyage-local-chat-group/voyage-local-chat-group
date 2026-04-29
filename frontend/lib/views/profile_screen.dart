@@ -93,11 +93,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            TopNavigationBar(
-              onProfileTap: () {
-                // Navigate to profile
-              },
-            ),
+            TopNavigationBar(onProfileTap: () {}),
             Expanded(child: _buildBody()),
           ],
         ),
@@ -168,9 +164,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 24),
             Text(
               username,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Container(
@@ -236,7 +232,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 40),
-            // Log out button for utility
             SizedBox(
               width: double.infinity,
               child: TextButton.icon(

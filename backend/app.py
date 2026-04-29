@@ -263,9 +263,10 @@ class LocationalChatrooms(Resource):
     def get(self):
         try:
             rows = queryDB(
-                "SELECT chatroom_id, chatroom_name, coords_top_left, coords_bottom_right FROM chatrooms WHERE chatroom_type = 'Locational Chatroom';",
+                "SELECT chatroom_id, chatroom_name, coords_top_left, coords_bottom_right, author_id FROM chatrooms WHERE chatroom_type = 'Locational Chatroom';",
                 ()
             )
+
             chatrooms = []
             for row in rows:
                 chatrooms.append({
@@ -273,11 +274,15 @@ class LocationalChatrooms(Resource):
                     'chatroom_name': row[1],
                     'coords_top_left': row[2].strip() if row[2] else None,
                     'coords_bottom_right': row[3].strip() if row[3] else None,
+                    'author_id': str(row[4]) if row[4] else None,
                 })
+
             return {'success': True, 'data': chatrooms}, 200
+
         except Exception as e:
             print(e)
             return {'message': 'An error occurred'}, 400
+
 
     @token_required
     def post(self):
@@ -286,13 +291,14 @@ class LocationalChatrooms(Resource):
             chatroom_name = json_data.get('chatroom_name')
             coords_top_left = json_data.get('coords_top_left')
             coords_bottom_right = json_data.get('coords_bottom_right')
+            author_id = g.current_user['user_id']
 
             if not chatroom_name or not coords_top_left or not coords_bottom_right:
                 return {'message': 'chatroom_name, coords_top_left, and coords_bottom_right are required'}, 400
 
             executeOnDB(
-                "INSERT INTO chatrooms(chatroom_type, chatroom_name, coords_top_left, coords_bottom_right) VALUES ('Locational Chatroom', %s, %s, %s);",
-                (chatroom_name, coords_top_left, coords_bottom_right)
+                "INSERT INTO chatrooms(chatroom_type, chatroom_name, coords_top_left, coords_bottom_right, author_id) VALUES ('Locational Chatroom', %s, %s, %s, %s);",
+                (chatroom_name, coords_top_left, coords_bottom_right, author_id)
             )
 
             new_room = queryDB(
@@ -314,19 +320,18 @@ class LocationalChatrooms(Resource):
     @token_required
     def delete(self):
         try:
-            # Delete all related data first
+            user_id = g.current_user['user_id']
             executeOnDB(
-                "DELETE FROM messages WHERE chatroom_id IN (SELECT chatroom_id FROM chatrooms WHERE chatroom_type = 'Locational Chatroom');",
-                ()
+                "DELETE FROM messages WHERE chatroom_id IN (SELECT chatroom_id FROM chatrooms WHERE chatroom_type = 'Locational Chatroom' AND author_id = %s);",
+                (user_id,)
             )
             executeOnDB(
-                "DELETE FROM chatroom_memberships WHERE chatroom_id IN (SELECT chatroom_id FROM chatrooms WHERE chatroom_type = 'Locational Chatroom');",
-                ()
+                "DELETE FROM chatroom_memberships WHERE chatroom_id IN (SELECT chatroom_id FROM chatrooms WHERE chatroom_type = 'Locational Chatroom' AND author_id = %s);",
+                (user_id,)
             )
-            # Then delete the chatrooms
             executeOnDB(
-                "DELETE FROM chatrooms WHERE chatroom_type = 'Locational Chatroom';",
-                ()
+                "DELETE FROM chatrooms WHERE chatroom_type = 'Locational Chatroom' AND author_id = %s;",
+                (user_id,)
             )
             return {'success': True, 'message': 'All locational chatrooms deleted'}, 200
         except Exception as e:

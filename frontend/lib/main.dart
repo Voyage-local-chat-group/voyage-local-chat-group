@@ -13,19 +13,19 @@ const backendURL = "http://127.0.0.1:5001";
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
 final List<Color> appColorOptions = [
-  primaryColour, // 0: The original Pink
-  Colors.indigo, // 1: Indigo
-  Colors.teal, // 2: Teal
-  Colors.deepPurple, // 3: Deep Purple
-  Colors.amber, // 4: Amber
-  Colors.deepOrange, // 5: Deep Orange
+  primaryColour,
+  Colors.indigo,
+  Colors.teal,
+  Colors.deepPurple,
+  Colors.amber,
+  Colors.deepOrange,
 ];
 final ValueNotifier<Color> colorNotifier = ValueNotifier(appColorOptions[1]);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
-  
+
   final isDarkMode = prefs.getBool('is_dark_mode') ?? false;
   themeNotifier.value = isDarkMode ? ThemeMode.dark : ThemeMode.light;
 
@@ -114,12 +114,10 @@ class _StartupGateState extends State<StartupGate> {
     if (!mounted) return;
 
     if (isValid) {
-
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
     } else {
-
       await prefs.remove('jwt_token');
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const TitleScreen()),
@@ -135,15 +133,16 @@ class _StartupGateState extends State<StartupGate> {
       final request = await client.getUrl(Uri.parse('$backendURL/auth/verify'));
       request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $token');
       final response = await request.close();
-      
+
       if (response.statusCode == 200) {
         return true;
       }
 
-      debugPrint('Token verification failed with status: ${response.statusCode}');
+      debugPrint(
+        'Token verification failed with status: ${response.statusCode}',
+      );
       return false;
     } catch (e) {
-
       debugPrint('Token verification error: $e');
       return false;
     } finally {
@@ -153,11 +152,6 @@ class _StartupGateState extends State<StartupGate> {
 
   @override
   Widget build(BuildContext context) {
-
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
