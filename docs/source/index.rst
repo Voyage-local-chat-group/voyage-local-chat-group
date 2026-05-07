@@ -1,7 +1,7 @@
-SETaP 7B Untitled Project Documentation
+SETaP 7D Voyage Chat App Documentation
 ===================================
 
-**Untitled Project** is a novel Instant Messenger app that prioritises local connection through location-separated chatrooms.
+**Voyage Chat App** is a novel Instant Messenger app that prioritises local connection through location-separated chatrooms.
 
 .. note::
 
@@ -14,3 +14,9 @@ Contents
 
    user_guide
    development
+
+.. automodule:: app
+   :members:
+
+.. automodule:: database_connector
+   :members:

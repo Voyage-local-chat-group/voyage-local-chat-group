@@ -16,7 +16,12 @@ CORS(app)
 api = Api(app, version='1.0', title='Voyage API', description='API for Voyage Chat App')
 
 def token_required(f):
-    # Check that the request has a valid JWT token.
+    """
+    Decorator to protect routes with JWT authentication.
+    Reads the Bearer token from the Authorization header and verifies it.
+
+    :return: 401 if token is missing or invalid.
+    """
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
@@ -49,6 +54,13 @@ def hello_world():
 class Register(Resource):
     # Create a new user account.
     def post(self):
+        """
+        Register a new user account.
+
+        :bodyparam username: The desired username.
+        :bodyparam password: The desired password.
+        :return: 201 if created, 400 if username already exists.
+        """
         try:
             json_data = request.get_json(force=True)
             username = json_data['username']
@@ -71,6 +83,13 @@ class Register(Resource):
 class Login(Resource):
     # Log in a user and return a JWT token.
     def post(self):
+        """
+        Log in and return a JWT token.
+
+        :bodyparam username: The user's username.
+        :bodyparam password: The user's password.
+        :return: JWT token and user_id if successful, 401 if credentials are wrong.
+        """
         try:
             json_data = request.get_json(force=True)
             username = json_data['username']
@@ -111,6 +130,11 @@ class AuthVerify(Resource):
     # Check if the saved login token is still valid.
     @token_required
     def get(self):
+        """
+        Verify that the current JWT token is still valid.
+
+        :return: 200 if valid, 401 if expired or invalid.
+        """
         return {'message': 'Token is valid'}, 200
 
 @api.route("/user/<uuid:user_id>")
@@ -118,6 +142,12 @@ class User(Resource):
     # Return profile data for one user.
     @token_required
     def get(self, user_id):
+        """
+        Get profile data for a specific user.
+
+        :param user_id: The UUID of the user.
+        :return: User profile data, or 404 if not found.
+        """
         sql = "SELECT username, avatar_url, bio, account_status, created_at FROM users WHERE user_id = %s;"
         user = queryDB(sql, (str(user_id),))
 
@@ -137,6 +167,12 @@ class User(Resource):
     # Update the current user's own profile.
     @token_required
     def put(self, user_id):
+        """
+        Update the current user's profile. Only the logged-in user can edit their own profile.
+
+        :param user_id: The UUID of the user to update.
+        :return: 200 if updated, 403 if permission denied.
+        """
         if str(user_id) != g.current_user['user_id']:
             return {'message': 'Permission denied: You can only edit your own profile.'}, 403
 
@@ -151,6 +187,12 @@ class UserSearch(Resource):
     # Search users by username.
     @token_required
     def get(self):
+         """
+        Search for users by username.
+
+        :queryparam q: The search string to match against usernames.
+        :return: A list of matching users (user_id and username).
+        """
         try:
             query = request.args.get('q', '')
             if not query:
@@ -171,6 +213,11 @@ class MyChatrooms(Resource):
     # Get all chatrooms joined by the current user.
     @token_required
     def get(self):
+        """
+        Get all chatrooms the current user has joined.
+
+        :return: A list of chatrooms with id, name, display name, and type.
+        """
         try:
             user_id = g.current_user['user_id']
             sql = """
@@ -214,6 +261,12 @@ class DirectMessageChatroom(Resource):
     # Create or reuse a direct message chatroom.
     @token_required
     def post(self):
+        """
+        Get all messages in a chatroom, ordered by time.
+
+        :param chatroom_id: The UUID of the chatroom.
+        :return: A list of messages with sender, content, and timestamp.
+        """
         try:
             json_data = request.get_json(force=True)
             other_user_id = json_data['user_id']
@@ -273,6 +326,13 @@ class LocationalChatrooms(Resource):
     # Get all local map chatrooms.
     @token_required
     def get(self):
+        """
+        Send a new message to a chatroom.
+
+        :param chatroom_id: The UUID of the chatroom.
+        :bodyparam content: The text content of the message.
+        :return: 201 if sent, 500 if failed.
+        """
         try:
             rows = queryDB(
                 "SELECT chatroom_id, chatroom_name, coords_top_left, coords_bottom_right, author_id FROM chatrooms WHERE chatroom_type = 'Locational Chatroom';",
@@ -438,6 +498,12 @@ class Notifications(Resource):
     # Get recent message notifications for the current user.
     @token_required
     def get(self):
+         """
+        Get the 30 most recent message notifications for the current user.
+        Only shows messages from other users in chatrooms the user has joined.
+
+        :return: A list of notifications with title, message preview, and timestamp.
+        """
         try:
             user_id = g.current_user['user_id']
             sql = """

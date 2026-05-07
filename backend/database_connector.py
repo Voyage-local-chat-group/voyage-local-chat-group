@@ -3,6 +3,12 @@ import os
 
 def databaseConnect():
     # Create a connection to the PostgreSQL database.
+        """
+    Create and return a connection to the PostgreSQL database.
+    Uses environment variables for configuration if available.
+
+    :return: A psycopg2 database connection object, or None if connection fails.
+    """
     try:
         # Connect to the local database using the given login details.
         connection = psycopg2.connect(host="localhost",dbname="app", user="Voyage", password="Voyage")
@@ -16,6 +22,13 @@ def databaseConnect():
 
 def queryDB(sql_query, params=None):
     # Run a query that reads data from the database.
+        """
+    Execute a SELECT query and return the results.
+
+    :param sql: The SQL query string to execute.
+    :param params: Optional tuple of parameters for the query.
+    :return: A list of rows returned by the query.
+    """
     data = []
     db = databaseConnect()
     if not db:
@@ -40,6 +53,13 @@ def queryDB(sql_query, params=None):
 
 def executeOnDB(sql_query, params=None):
     # Run a query that changes data in the database.
+        """
+    Execute an INSERT, UPDATE, or DELETE query on the database.
+
+    :param sql: The SQL query string to execute.
+    :param params: Optional tuple of parameters for the query.
+    :return: True if successful, False if an error occurred.
+    """
     success = False
     db = databaseConnect()
     if not db:

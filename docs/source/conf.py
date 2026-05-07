@@ -1,10 +1,12 @@
 # Configuration file for the Sphinx documentation builder.
 
 # -- Project information
+import os
+import sys
 
-project = 'Untitled SETaP Project'
+project = 'Voyage Chat App'
 copyright = 'None'
-author = 'Team 7B'
+author = 'Team 7D'
 
 release = '0.1'
 version = '0.1.0'
@@ -33,3 +35,5 @@ html_theme = 'sphinx_rtd_theme'
 
 # -- Options for EPUB output
 epub_show_urls = 'footnote'
+
+sys.path.insert(0, os.path.abspath('../../backend'))
