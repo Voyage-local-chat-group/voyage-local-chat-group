@@ -1,2 +1,2 @@
 # Chatlus / Voyage
-Documentation can be found here: https://7b-project-documentation.readthedocs.io/en/latest/
+Documentation can be found here: (https://voyage-local-chat-group.readthedocs.io/en/latest/ )
