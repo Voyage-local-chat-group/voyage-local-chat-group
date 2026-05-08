@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../main.dart';
 import '../palette.dart';
+import '../main.dart';
 import '../widgets/navigation_bars.dart';
 import './map_screen.dart';
 import './messages_screen.dart';
@@ -20,6 +20,37 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
 
   int _selectedNavIndex = 0;
+  List<Map<String, dynamic>> _chatrooms = [];
+  bool _loadingChatrooms = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMyChatrooms();
+  }
+
+  // Fetch the current user's chatrooms from the backend.
+  Future<void> _fetchMyChatrooms() async {
+    setState(() => _loadingChatrooms = true);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('jwt_token') ?? '';
+      final response = await http.get(
+        Uri.parse('$backendURL/chatrooms/mine'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _chatrooms = List<Map<String, dynamic>>.from(data['data']);
+        });
+      }
+    } catch (e) {
+      debugPrint('Failed to load chatrooms: $e');
+    } finally {
+      setState(() => _loadingChatrooms = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,13 +61,16 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             _selectedNavIndex = index;
           });
+          if (index == 0) {
+            _fetchMyChatrooms();
+          }
         },
       ),
       body: SafeArea(
         child: Column(
           children: [
             TopNavigationBar(onProfileTap: () {}),
-            
+
             if (_selectedNavIndex == 0) ...[
               Expanded(
                 child: SingleChildScrollView(
@@ -58,12 +92,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
+                                children: const [
+                                  Text(
                                     'Your Location',
                                     style: TextStyle(color: Colors.white70, fontSize: 12),
                                   ),
-                                  const Text(
+                                  Text(
                                     'Portsmouth, UK',
                                     style: TextStyle(
                                       color: Colors.white,
@@ -81,16 +115,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                '4 nearby',
-                                style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
+                                '${_chatrooms.length} joined',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      
+
                       const SizedBox(height: 24),
-                      
+
                       const Text(
                         'My Chatrooms',
                         style: TextStyle(
@@ -99,26 +136,37 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      SizedBox(
-                        height: 120,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            _buildChatroomCard('Coffee Shop', '0.2 km', 12, Icons.local_cafe),
-                            _buildChatroomCard('Vitoria Park', '0.5 km', 8, Icons.park),
-                            _buildChatroomCard('University Library', '0.8 km', 5, Icons.local_library),
-                          ],
+
+                      // 显示加载、空状态或真实聊天室列表
+                      if (_loadingChatrooms)
+                        const Center(child: CircularProgressIndicator())
+                      else if (_chatrooms.isEmpty)
+                        const Text(
+                          'No chatrooms joined yet. Visit the map to join one!',
+                          style: TextStyle(color: Colors.grey),
+                        )
+                      else
+                        SizedBox(
+                          height: 120,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _chatrooms.length,
+                            itemBuilder: (context, index) {
+                              final room = _chatrooms[index];
+                              final name = room['display_name'] ?? room['chatroom_name'] ?? 'Chatroom';
+                              return _buildChatroomCard(name, Icons.group);
+                            },
+                          ),
                         ),
-                      ),
-                      
+
                       const SizedBox(height: 24),
-                      
+
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
                             setState(() {
-                              _selectedNavIndex = 2; 
+                              _selectedNavIndex = 2;
                             });
                           },
                           style: ElevatedButton.styleFrom(
@@ -143,11 +191,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: IndexedStack(
                   index: _selectedNavIndex,
                   children: const [
-                    SizedBox.shrink(),       
-                    MessagesScreen(),      
+                    SizedBox.shrink(),
+                    MessagesScreen(),
                     MapScreen(),
-                    NotificationsScreen(),             
-                    SettingsScreen(),       
+                    NotificationsScreen(),
+                    SettingsScreen(),
                   ],
                 ),
               ),
@@ -158,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildChatroomCard(String name, String distance, int members, IconData icon) {
+  Widget _buildChatroomCard(String name, IconData icon) {
     return Container(
       width: 140,
       margin: const EdgeInsets.only(right: 12),
@@ -182,17 +230,8 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             name,
             style: const TextStyle(fontWeight: FontWeight.bold),
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
-          ),
-          Text(
-            distance,
-            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '$members members',
-            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
           ),
         ],
       ),
