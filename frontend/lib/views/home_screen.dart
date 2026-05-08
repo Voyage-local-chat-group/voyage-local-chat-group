@@ -153,7 +153,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             itemCount: _chatrooms.length,
                             itemBuilder: (context, index) {
                               final room = _chatrooms[index];
-                              final name = room['display_name'] ?? room['chatroom_name'] ?? 'Chatroom';
+                              if (room['type'] == 'dm') return const SizedBox.shrink();
+                              final name = room['chatroom_name'] ?? 'Chatroom';
                               return _buildChatroomCard(name, Icons.group);
                             },
                           ),
