@@ -187,7 +187,7 @@ class UserSearch(Resource):
     # Search users by username.
     @token_required
     def get(self):
-         """
+        """
         Search for users by username.
 
         :queryparam q: The search string to match against usernames.
@@ -498,7 +498,7 @@ class Notifications(Resource):
     # Get recent message notifications for the current user.
     @token_required
     def get(self):
-         """
+        """
         Get the 30 most recent message notifications for the current user.
         Only shows messages from other users in chatrooms the user has joined.
 

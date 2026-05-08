@@ -3,7 +3,7 @@ import os
 
 def databaseConnect():
     # Create a connection to the PostgreSQL database.
-        """
+    """
     Create and return a connection to the PostgreSQL database.
     Uses environment variables for configuration if available.
 
@@ -22,7 +22,7 @@ def databaseConnect():
 
 def queryDB(sql_query, params=None):
     # Run a query that reads data from the database.
-        """
+    """
     Execute a SELECT query and return the results.
 
     :param sql: The SQL query string to execute.
@@ -53,7 +53,7 @@ def queryDB(sql_query, params=None):
 
 def executeOnDB(sql_query, params=None):
     # Run a query that changes data in the database.
-        """
+    """
     Execute an INSERT, UPDATE, or DELETE query on the database.
 
     :param sql: The SQL query string to execute.
