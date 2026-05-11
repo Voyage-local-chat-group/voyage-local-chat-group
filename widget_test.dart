@@ -194,5 +194,17 @@ void main() {
 
       expect(notificationSwitch().value, isFalse);
     });
+
+    testWidgets('notifications choice is saved in SharedPreferences', (
+      tester,
+    ) async {
+      await pumpTestApp(tester, const Scaffold(body: SettingsScreen()));
+
+      await tester.tap(find.text('Notifications'));
+      await tester.pump();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('notifications_enabled'), isFalse);
+    });
   });
 }

@@ -129,15 +129,19 @@ class VoyageApiTests(unittest.TestCase):
     @patch("app.queryDB")
     def test_notifications_returns_recent_messages(self, query_db):
         sent_at = datetime.datetime(2026, 5, 2, 11, 0, tzinfo=datetime.timezone.utc)
-        query_db.return_value = [
-            (
-                "55555555-5555-5555-5555-555555555555",
-                "bob",
-                "Bob chat",
-                "Direct Message",
-                "hi alice",
-                sent_at,
-            )
+        query_db.side_effect = [
+            [(True,)],
+            [
+                (
+                    "55555555-5555-5555-5555-555555555555",
+                    "bob",
+                    "Bob chat",
+                    "Direct Message",
+                    "hi alice",
+                    sent_at,
+                    None,
+                )
+            ],
         ]
 
         response = self.client.get("/notifications", headers=self.auth_headers())
@@ -145,9 +149,60 @@ class VoyageApiTests(unittest.TestCase):
         body = response.get_json()
         self.assertEqual(response.status_code, 200)
         self.assertTrue(body["success"])
-        self.assertEqual(body["data"][0]["title"], "New Direct Message")
-        self.assertEqual(body["data"][0]["message"], "bob: hi alice")
+        self.assertEqual(body["data"][0]["title"], "bob sent you a message")
+        self.assertEqual(body["data"][0]["message"], "hi alice")
         self.assertEqual(body["data"][0]["type"], "message")
+        self.assertFalse(body["data"][0]["is_read"])
+        self.assertEqual(body["unread_count"], 1)
+        self.assertEqual(body["data"][0]["sender_username"], "bob")
+
+    @patch("app.queryDB", return_value=[(False,)])
+    def test_notifications_respects_disabled_setting(self, query_db):
+        response = self.client.get("/notifications", headers=self.auth_headers())
+
+        body = response.get_json()
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(body["success"])
+        self.assertEqual(body["data"], [])
+        self.assertEqual(body["unread_count"], 0)
+
+    @patch("app.executeOnDB", return_value=True)
+    def test_notification_can_be_marked_as_read(self, execute_on_db):
+        response = self.client.patch(
+            "/notifications/55555555-5555-5555-5555-555555555555/read",
+            headers=self.auth_headers(),
+        )
+
+        body = response.get_json()
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(body["success"])
+        self.assertTrue(execute_on_db.called)
+
+    @patch("app.executeOnDB", return_value=True)
+    def test_all_notifications_can_be_marked_as_read(self, execute_on_db):
+        response = self.client.patch(
+            "/notifications/read-all",
+            headers=self.auth_headers(),
+        )
+
+        body = response.get_json()
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(body["success"])
+        self.assertTrue(execute_on_db.called)
+
+    @patch("app.executeOnDB", return_value=True)
+    def test_notification_setting_can_be_updated(self, execute_on_db):
+        response = self.client.put(
+            "/settings/notifications",
+            headers=self.auth_headers(),
+            json={"notifications_enabled": False},
+        )
+
+        body = response.get_json()
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(body["success"])
+        self.assertFalse(body["notifications_enabled"])
+        self.assertTrue(execute_on_db.called)
 
     @patch("app.executeOnDB", return_value=True)
     @patch("app.queryDB")
