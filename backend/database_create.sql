@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 CREATE TYPE account_status_enum AS ENUM ('Online', 'Away', 'Do Not Disturb','Offline');
 CREATE TABLE users(
     user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -29,7 +31,7 @@ CREATE TABLE chatrooms(
     chatroom_type chatroom_type_enum NOT NULL,
     chatroom_name VARCHAR(64) NOT NULL,
     coords_bottom_right CHAR(64),
-    coords_top_left CHAR(64)
+    coords_top_left CHAR(64),
     author_id UUID,
     FOREIGN KEY (author_id) REFERENCES users(user_id)
 );
