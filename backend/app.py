@@ -134,14 +134,20 @@ class User(Resource):
         if not user:
             abort(404, description="User not found")
 
+        # Mask online status if the user has disabled visibility and it's being viewed by someone else.
+        status = user[0][3]
+        show_online = user[0][5]
+        if str(user_id) != g.current_user['user_id'] and not show_online:
+            status = 'Offline'
+
         user_data = {
             "user_id": str(user_id),
             "username": user[0][0],
             "avatar_url": user[0][1],
             "bio": user[0][2],
-            "account_status": user[0][3],
+            "account_status": status,
             "created_at": user[0][4].isoformat(),
-            "show_online_status": user[0][5],
+            "show_online_status": show_online,
             "age_verified": user[0][6]
         }
         return jsonify(user_data)
