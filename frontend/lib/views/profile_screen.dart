@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../main.dart';
 import '../widgets/navigation_bars.dart';
@@ -18,6 +19,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int _selectedNavIndex = 0;
   bool _isLoading = true;
   bool _isUpdatingBio = false;
+  bool _isUpdatingAvatar = false;
   String? _errorMessage;
   Map<String, dynamic>? _userData;
 
@@ -74,6 +76,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } finally {
       if (mounted) setState(() => _isUpdatingBio = false);
+    }
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
+
+    if (image == null) return;
+
+    setState(() => _isUpdatingAvatar = true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('jwt_token');
+
+      if (token == null) return;
+
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$backendURL/user/upload-avatar'),
+      );
+      request.headers['Authorization'] = 'Bearer $token';
+      request.files.add(await http.MultipartFile.fromPath('file', image.path));
+
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Profile picture updated successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+        await _fetchProfile();
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to upload image. Please try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUpdatingAvatar = false);
     }
   }
 
@@ -227,6 +286,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final username = _userData!['username'] ?? 'Unknown User';
     final status = _userData!['account_status'] ?? 'Offline';
     final bio = _userData!['bio'];
+    final avatarUrl = _userData!['avatar_url'];
+    final fullAvatarUrl = (avatarUrl != null && !avatarUrl.contains('default.png'))
+        ? '$backendURL/$avatarUrl'
+        : null;
 
     return SingleChildScrollView(
       child: Padding(
@@ -235,23 +298,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: primaryColour, width: 3),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    spreadRadius: 2,
+            Stack(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: primaryColour, width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: const CircleAvatar(
-                radius: 60,
-                backgroundColor: primaryColourPastel,
-                child: Icon(Icons.person, size: 60, color: primaryColour),
-              ),
+                  child: CircleAvatar(
+                    radius: 60,
+                    backgroundColor: primaryColourPastel,
+                    backgroundImage: fullAvatarUrl != null
+                        ? NetworkImage(fullAvatarUrl)
+                        : null,
+                    child: fullAvatarUrl == null
+                        ? const Icon(Icons.person, size: 60, color: primaryColour)
+                        : null,
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: _isUpdatingAvatar ? null : _pickAndUploadImage,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: primaryColour,
+                        shape: BoxShape.circle,
+                      ),
+                      child: _isUpdatingAvatar
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.camera_alt,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
             Text(

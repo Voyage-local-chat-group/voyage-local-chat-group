@@ -6,6 +6,7 @@ from database_connector import queryDB, executeOnDB
 import jwt
 import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from flask_cors import CORS
 from functools import wraps
 
@@ -14,6 +15,15 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'voyage_super_secret_key_123'
 CORS(app)
 api = Api(app, version='1.0', title='Voyage API', description='API for Voyage Chat App')
+
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/profile_pictures')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def token_required(f):
     # Check that the request has a valid JWT token.
@@ -158,6 +168,46 @@ class User(Resource):
         except Exception as e:
             print(e)
             return {'message': 'An error occurred'}, 400
+
+@api.route("/user/upload-avatar")
+class UploadAvatar(Resource):
+    # Upload and update the profile picture for the current user.
+    @token_required
+    def post(self):
+        try:
+            if 'file' not in request.files:
+                return {'message': 'No file part'}, 400
+            
+            file = request.files['file']
+            if file.filename == '':
+                return {'message': 'No selected file'}, 400
+            
+            if file and file.filename and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                user_id = g.current_user['user_id']
+                ext = filename.rsplit('.', 1)[1].lower()
+                # Create a unique filename using user_id and timestamp
+                new_filename = f"{user_id}_{int(datetime.datetime.now().timestamp())}.{ext}"
+                
+                file_path = os.path.join(UPLOAD_FOLDER, new_filename)
+                file.save(file_path)
+                
+                # Store the relative path to be served by Flask static
+                avatar_url = f"static/profile_pictures/{new_filename}"
+                
+                sql = "UPDATE users SET avatar_url = %s, updated_at = NOW() WHERE user_id = %s;"
+                if executeOnDB(sql, (avatar_url, user_id)):
+                    return {
+                        'message': 'Avatar updated successfully', 
+                        'avatar_url': avatar_url
+                    }, 200
+                else:
+                    return {'message': 'Failed to update database'}, 500
+            
+            return {'message': 'File type not allowed'}, 400
+        except Exception as e:
+            print(f"Upload error: {e}")
+            return {'message': 'An error occurred during upload'}, 500
 
 @api.route("/users/search")
 class UserSearch(Resource):
