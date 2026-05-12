@@ -177,7 +177,20 @@ class User(Resource):
             sql = f"UPDATE users SET {', '.join(updates)}, updated_at = NOW() WHERE user_id = %s;"
             
             if executeOnDB(sql, tuple(params)):
-                return {'message': 'Profile updated successfully'}, 200
+                new_token = None
+                if username:
+                    # Generate a new token since the username (identity) has changed.
+                    new_token = jwt.encode({
+                        'user_id': str(user_id),
+                        'username': username,
+                        'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=24)
+                    }, app.config['SECRET_KEY'], algorithm="HS256")
+                
+                return {
+                    'message': 'Profile updated successfully', 
+                    'username': username,
+                    'token': new_token
+                }, 200
             else:
                 return {'message': 'Failed to update profile (username might be taken)'}, 400
         except Exception as e:
