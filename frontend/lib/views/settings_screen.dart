@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'account_settings_screen.dart';
+import 'privacy_security_screen.dart';
 import '../main.dart';
 
 // Screen for changing app settings.
@@ -143,7 +144,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: const Text('Privacy & Security'),
                         leading: const Icon(Icons.lock),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => const PrivacySecurityScreen(),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   );

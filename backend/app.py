@@ -128,7 +128,7 @@ class User(Resource):
     # Return profile data for one user.
     @token_required
     def get(self, user_id):
-        sql = "SELECT username, avatar_url, bio, account_status, created_at FROM users WHERE user_id = %s;"
+        sql = "SELECT username, avatar_url, bio, account_status, created_at, show_online_status, age_verified FROM users WHERE user_id = %s;"
         user = queryDB(sql, (str(user_id),))
 
         if not user:
@@ -140,7 +140,9 @@ class User(Resource):
             "avatar_url": user[0][1],
             "bio": user[0][2],
             "account_status": user[0][3],
-            "created_at": user[0][4].isoformat()
+            "created_at": user[0][4].isoformat(),
+            "show_online_status": user[0][5],
+            "age_verified": user[0][6]
         }
         return jsonify(user_data)
 
@@ -169,6 +171,11 @@ class User(Resource):
                     return {'message': 'Username must be between 3 and 25 characters.'}, 400
                 updates.append("username = %s")
                 params.append(username)
+            
+            show_online_status = json_data.get('show_online_status')
+            if show_online_status is not None:
+                updates.append("show_online_status = %s")
+                params.append(bool(show_online_status))
             
             if not updates:
                 return {'message': 'Nothing to update.'}, 400
