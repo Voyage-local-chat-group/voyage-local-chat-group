@@ -1,4 +1,4 @@
-SETaP 7B Voyage Chat App Documentation
+SETaP 7D Voyage Chat App Documentation
 ===================================
 
 **Voyage Chat App** is a novel Instant Messenger app that prioritises local connection through location-separated chatrooms.
