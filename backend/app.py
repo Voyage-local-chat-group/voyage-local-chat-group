@@ -144,7 +144,7 @@ class User(Resource):
         }
         return jsonify(user_data)
 
-    # Update the current user's own profile.
+    # Update the current user's own profile (bio and username).
     @token_required
     def put(self, user_id):
         if str(user_id) != g.current_user['user_id']:
@@ -153,18 +153,84 @@ class User(Resource):
         try:
             json_data = request.get_json(force=True)
             bio = json_data.get('bio')
+            username = json_data.get('username')
             
-            if bio is None:
-                return {'message': 'Bio is required.'}, 400
+            updates = []
+            params = []
             
-            if len(bio) > 150:
-                return {'message': 'Bio must be 150 characters or less.'}, 400
-
-            sql = "UPDATE users SET bio = %s, updated_at = NOW() WHERE user_id = %s;"
-            if executeOnDB(sql, (bio, str(user_id))):
-                return {'message': 'Profile updated successfully', 'bio': bio}, 200
+            if bio is not None:
+                if len(bio) > 150:
+                    return {'message': 'Bio must be 150 characters or less.'}, 400
+                updates.append("bio = %s")
+                params.append(bio)
+                
+            if username is not None:
+                if len(username) < 3 or len(username) > 25:
+                    return {'message': 'Username must be between 3 and 25 characters.'}, 400
+                updates.append("username = %s")
+                params.append(username)
+            
+            if not updates:
+                return {'message': 'Nothing to update.'}, 400
+                
+            params.append(str(user_id))
+            sql = f"UPDATE users SET {', '.join(updates)}, updated_at = NOW() WHERE user_id = %s;"
+            
+            if executeOnDB(sql, tuple(params)):
+                return {'message': 'Profile updated successfully'}, 200
             else:
-                return {'message': 'Failed to update profile'}, 500
+                return {'message': 'Failed to update profile (username might be taken)'}, 400
+        except Exception as e:
+            print(e)
+            return {'message': 'An error occurred'}, 400
+
+    # Delete the current user's account.
+    @token_required
+    def delete(self, user_id):
+        if str(user_id) != g.current_user['user_id']:
+            return {'message': 'Permission denied.'}, 403
+
+        try:
+            # Note: Database constraints (FOREIGN KEYs) should handle clean-up if configured for CASCADE.
+            # Otherwise, manual deletion of messages/memberships would be needed here.
+            sql = "DELETE FROM users WHERE user_id = %s;"
+            if executeOnDB(sql, (str(user_id),)):
+                return {'message': 'Account deleted successfully'}, 200
+            else:
+                return {'message': 'Failed to delete account'}, 500
+        except Exception as e:
+            print(e)
+            return {'message': 'An error occurred'}, 400
+
+@api.route("/user/change-password")
+class ChangePassword(Resource):
+    # Change the current user's password.
+    @token_required
+    def post(self):
+        try:
+            json_data = request.get_json(force=True)
+            old_password = json_data.get('old_password')
+            new_password = json_data.get('new_password')
+            user_id = g.current_user['user_id']
+
+            if not old_password or not new_password:
+                return {'message': 'Both old and new passwords are required'}, 400
+
+            sql = "SELECT password_hash FROM users WHERE user_id = %s;"
+            rows = queryDB(sql, (user_id,))
+            if not rows:
+                return {'message': 'User not found'}, 404
+            
+            stored_hash = rows[0][0]
+            if not check_password_hash(stored_hash, old_password):
+                return {'message': 'Incorrect old password'}, 401
+            
+            new_hash = generate_password_hash(new_password, method='pbkdf2:sha256')
+            update_sql = "UPDATE users SET password_hash = %s, updated_at = NOW() WHERE user_id = %s;"
+            if executeOnDB(update_sql, (new_hash, user_id)):
+                return {'message': 'Password updated successfully'}, 200
+            else:
+                return {'message': 'Failed to update password'}, 500
         except Exception as e:
             print(e)
             return {'message': 'An error occurred'}, 400
