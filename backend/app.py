@@ -141,7 +141,20 @@ class User(Resource):
             return {'message': 'Permission denied: You can only edit your own profile.'}, 403
 
         try:
-            return {'message': 'Profile updated successfully'}, 200
+            json_data = request.get_json(force=True)
+            bio = json_data.get('bio')
+            
+            if bio is None:
+                return {'message': 'Bio is required.'}, 400
+            
+            if len(bio) > 150:
+                return {'message': 'Bio must be 150 characters or less.'}, 400
+
+            sql = "UPDATE users SET bio = %s, updated_at = NOW() WHERE user_id = %s;"
+            if executeOnDB(sql, (bio, str(user_id))):
+                return {'message': 'Profile updated successfully', 'bio': bio}, 200
+            else:
+                return {'message': 'Failed to update profile'}, 500
         except Exception as e:
             print(e)
             return {'message': 'An error occurred'}, 400

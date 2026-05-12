@@ -17,6 +17,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   int _selectedNavIndex = 0;
   bool _isLoading = true;
+  bool _isUpdatingBio = false;
   String? _errorMessage;
   Map<String, dynamic>? _userData;
 
@@ -24,6 +25,97 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _fetchProfile();
+  }
+
+  Future<void> _updateBio(String newBio) async {
+    setState(() => _isUpdatingBio = true);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('jwt_token');
+      final userId = _userData?['user_id'];
+
+      if (token == null || userId == null) return;
+
+      final response = await http.put(
+        Uri.parse('$backendURL/user/$userId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'bio': newBio}),
+      );
+
+      if (response.statusCode == 200) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Bio updated successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+        await _fetchProfile();
+      } else {
+        final errorData = json.decode(response.body);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorData['message'] ?? 'Failed to update bio'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUpdatingBio = false);
+    }
+  }
+
+  void _showEditBioDialog() {
+    final controller = TextEditingController(text: _userData?['bio'] ?? '');
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Edit Bio'),
+            content: TextField(
+              controller: controller,
+              maxLength: 150,
+              maxLines: 3,
+              autofocus: true,
+              decoration: const InputDecoration(
+                hintText: 'Enter your bio...',
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: primaryColour),
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel', style: TextStyle(color: darkGrey)),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _updateBio(controller.text);
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: primaryColour),
+                child: const Text(
+                  'Save',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+    );
   }
 
   Future<void> _fetchProfile() async {
@@ -209,13 +301,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Bio',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: primaryColour,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Bio',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: primaryColour,
+                        ),
+                      ),
+                      if (!_isUpdatingBio)
+                        IconButton(
+                          onPressed: _showEditBioDialog,
+                          icon: const Icon(
+                            Icons.edit_note,
+                            size: 24,
+                            color: primaryColour,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                          tooltip: 'Edit Bio',
+                        )
+                      else
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: primaryColour,
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   Text(

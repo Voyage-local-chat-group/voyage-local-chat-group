@@ -5,7 +5,7 @@ def databaseConnect():
     # Create a connection to the PostgreSQL database.
     try:
         # Connect to the local database using the given login details.
-        connection = psycopg2.connect(host="localhost",dbname="app", user="Voyage", password="Voyage")
+        connection = psycopg2.connect(host="localhost",dbname="voyage", user="Voyage", password="Voyage")
         print("Connected to database!")
         return connection
     except (psycopg2.DatabaseError, Exception) as error:
@@ -64,6 +64,7 @@ def executeOnDB(sql_query, params=None):
 # Resets the database to the schema depicted in database_create.sql
 def firstBoot():
     # Set up or reset the database.
+    db = None
     try:
         db = databaseConnect()
         if not db:
@@ -84,11 +85,11 @@ def firstBoot():
 
     except (psycopg2.DatabaseError, Exception) as error:
         print(f"Database initialization failed: {error}")
-        if 'db' in locals() and db:
+        if db:
             # Undo setup changes if there is an error.
             db.rollback()
     finally:
-        if 'db' in locals() and db:
+        if db:
             db.close()
 
 if __name__ == '__main__':
