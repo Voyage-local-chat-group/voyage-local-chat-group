@@ -1,15 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'backend_config.dart' as backend_config;
 import 'views/title_screen.dart';
 import 'views/home_screen.dart';
 import 'palette.dart';
 
-const backendURL = "http://127.0.0.1:5000";
+String get backendURL => backend_config.backendURL;
 
 // These notifiers let the app update theme settings from different screens.
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
@@ -132,13 +133,13 @@ class _StartupGateState extends State<StartupGate> {
 
   Future<bool> _verifyToken(String token) async {
     // Ask the backend if the saved token is still valid.
-    final client = HttpClient();
-    client.connectionTimeout = const Duration(seconds: 5);
-
     try {
-      final request = await client.getUrl(Uri.parse('$backendURL/auth/verify'));
-      request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $token');
-      final response = await request.close();
+      final response = await http
+          .get(
+            Uri.parse('$backendURL/auth/verify'),
+            headers: {'Authorization': 'Bearer $token'},
+          )
+          .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
         return true;
@@ -151,8 +152,6 @@ class _StartupGateState extends State<StartupGate> {
     } catch (e) {
       debugPrint('Token verification error: $e');
       return false;
-    } finally {
-      client.close();
     }
   }
 
