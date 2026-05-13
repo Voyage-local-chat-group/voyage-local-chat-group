@@ -224,6 +224,53 @@ class VoyageApiTests(unittest.TestCase):
         self.assertEqual(body["data"]["chatroom_name"], "Coffee Shop")
         self.assertTrue(execute_on_db.called)
 
+    @patch("app.queryDB")
+    def test_locational_chatrooms_return_map_data(self, query_db):
+        query_db.return_value = [
+            (
+                self.chatroom_id,
+                "Guildhall Square",
+                "50.7990,-1.0920   ",
+                "50.7980,-1.0910   ",
+                self.user_id,
+            )
+        ]
+
+        response = self.client.get(
+            "/chatrooms/locational",
+            headers=self.auth_headers(),
+        )
+
+        body = response.get_json()
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(body["success"])
+        self.assertEqual(body["data"][0]["chatroom_name"], "Guildhall Square")
+        self.assertEqual(body["data"][0]["coords_top_left"], "50.7990,-1.0920")
+        self.assertEqual(body["data"][0]["author_id"], self.user_id)
+
+    @patch("app.executeOnDB", return_value=True)
+    @patch("app.queryDB")
+    def test_create_locational_chatroom_saves_coordinates(
+        self, query_db, execute_on_db
+    ):
+        query_db.return_value = [(self.chatroom_id,)]
+
+        response = self.client.post(
+            "/chatrooms/locational",
+            headers=self.auth_headers(),
+            json={
+                "chatroom_name": "Harbour Chat",
+                "coords_top_left": "50.8050,-1.1000",
+                "coords_bottom_right": "50.7950,-1.0900",
+            },
+        )
+
+        body = response.get_json()
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(body["success"])
+        self.assertEqual(body["data"]["chatroom_id"], self.chatroom_id)
+        self.assertTrue(execute_on_db.called)
+
 
 if __name__ == "__main__":
     unittest.main()
