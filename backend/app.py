@@ -6,7 +6,6 @@ from database_connector import queryDB, executeOnDB
 import jwt
 import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
 from flask_cors import CORS
 from functools import wraps
 
@@ -15,15 +14,6 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'voyage_super_secret_key_123'
 CORS(app)
 api = Api(app, version='1.0', title='Voyage API', description='API for Voyage Chat App')
-
-UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/profile_pictures')
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def token_required(f):
     # Check that the request has a valid JWT token.
@@ -128,178 +118,33 @@ class User(Resource):
     # Return profile data for one user.
     @token_required
     def get(self, user_id):
-        sql = "SELECT username, avatar_url, bio, account_status, created_at, show_online_status, age_verified FROM users WHERE user_id = %s;"
+        sql = "SELECT username, avatar_url, bio, account_status, created_at FROM users WHERE user_id = %s;"
         user = queryDB(sql, (str(user_id),))
 
         if not user:
             abort(404, description="User not found")
-
-        # Mask online status if the user has disabled visibility and it's being viewed by someone else.
-        status = user[0][3]
-        show_online = user[0][5]
-        if str(user_id) != g.current_user['user_id'] and not show_online:
-            status = 'Offline'
 
         user_data = {
             "user_id": str(user_id),
             "username": user[0][0],
             "avatar_url": user[0][1],
             "bio": user[0][2],
-            "account_status": status,
-            "created_at": user[0][4].isoformat(),
-            "show_online_status": show_online,
-            "age_verified": user[0][6]
+            "account_status": user[0][3],
+            "created_at": user[0][4].isoformat()
         }
         return jsonify(user_data)
 
-    # Update the current user's own profile (bio and username).
+    # Update the current user's own profile.
     @token_required
     def put(self, user_id):
         if str(user_id) != g.current_user['user_id']:
             return {'message': 'Permission denied: You can only edit your own profile.'}, 403
 
         try:
-            json_data = request.get_json(force=True)
-            bio = json_data.get('bio')
-            username = json_data.get('username')
-            
-            updates = []
-            params = []
-            
-            if bio is not None:
-                if len(bio) > 150:
-                    return {'message': 'Bio must be 150 characters or less.'}, 400
-                updates.append("bio = %s")
-                params.append(bio)
-                
-            if username is not None:
-                if len(username) < 3 or len(username) > 25:
-                    return {'message': 'Username must be between 3 and 25 characters.'}, 400
-                updates.append("username = %s")
-                params.append(username)
-            
-            show_online_status = json_data.get('show_online_status')
-            if show_online_status is not None:
-                updates.append("show_online_status = %s")
-                params.append(bool(show_online_status))
-            
-            if not updates:
-                return {'message': 'Nothing to update.'}, 400
-                
-            params.append(str(user_id))
-            sql = f"UPDATE users SET {', '.join(updates)}, updated_at = NOW() WHERE user_id = %s;"
-            
-            if executeOnDB(sql, tuple(params)):
-                new_token = None
-                if username:
-                    # Generate a new token since the username (identity) has changed.
-                    new_token = jwt.encode({
-                        'user_id': str(user_id),
-                        'username': username,
-                        'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=24)
-                    }, app.config['SECRET_KEY'], algorithm="HS256")
-                
-                return {
-                    'message': 'Profile updated successfully', 
-                    'username': username,
-                    'token': new_token
-                }, 200
-            else:
-                return {'message': 'Failed to update profile (username might be taken)'}, 400
+            return {'message': 'Profile updated successfully'}, 200
         except Exception as e:
             print(e)
             return {'message': 'An error occurred'}, 400
-
-    # Delete the current user's account.
-    @token_required
-    def delete(self, user_id):
-        if str(user_id) != g.current_user['user_id']:
-            return {'message': 'Permission denied.'}, 403
-
-        try:
-            # Note: Database constraints (FOREIGN KEYs) should handle clean-up if configured for CASCADE.
-            # Otherwise, manual deletion of messages/memberships would be needed here.
-            sql = "DELETE FROM users WHERE user_id = %s;"
-            if executeOnDB(sql, (str(user_id),)):
-                return {'message': 'Account deleted successfully'}, 200
-            else:
-                return {'message': 'Failed to delete account'}, 500
-        except Exception as e:
-            print(e)
-            return {'message': 'An error occurred'}, 400
-
-@api.route("/user/change-password")
-class ChangePassword(Resource):
-    # Change the current user's password.
-    @token_required
-    def post(self):
-        try:
-            json_data = request.get_json(force=True)
-            old_password = json_data.get('old_password')
-            new_password = json_data.get('new_password')
-            user_id = g.current_user['user_id']
-
-            if not old_password or not new_password:
-                return {'message': 'Both old and new passwords are required'}, 400
-
-            sql = "SELECT password_hash FROM users WHERE user_id = %s;"
-            rows = queryDB(sql, (user_id,))
-            if not rows:
-                return {'message': 'User not found'}, 404
-            
-            stored_hash = rows[0][0]
-            if not check_password_hash(stored_hash, old_password):
-                return {'message': 'Incorrect old password'}, 401
-            
-            new_hash = generate_password_hash(new_password, method='pbkdf2:sha256')
-            update_sql = "UPDATE users SET password_hash = %s, updated_at = NOW() WHERE user_id = %s;"
-            if executeOnDB(update_sql, (new_hash, user_id)):
-                return {'message': 'Password updated successfully'}, 200
-            else:
-                return {'message': 'Failed to update password'}, 500
-        except Exception as e:
-            print(e)
-            return {'message': 'An error occurred'}, 400
-
-@api.route("/user/upload-avatar")
-class UploadAvatar(Resource):
-    # Upload and update the profile picture for the current user.
-    @token_required
-    def post(self):
-        try:
-            if 'file' not in request.files:
-                return {'message': 'No file part'}, 400
-            
-            file = request.files['file']
-            if file.filename == '':
-                return {'message': 'No selected file'}, 400
-            
-            if file and file.filename and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                user_id = g.current_user['user_id']
-                ext = filename.rsplit('.', 1)[1].lower()
-                # Create a unique filename using user_id and timestamp
-                new_filename = f"{user_id}_{int(datetime.datetime.now().timestamp())}.{ext}"
-                
-                file_path = os.path.join(UPLOAD_FOLDER, new_filename)
-                file.save(file_path)
-                
-                # Store the relative path to be served by Flask static
-                avatar_url = f"static/profile_pictures/{new_filename}"
-                
-                sql = "UPDATE users SET avatar_url = %s, updated_at = NOW() WHERE user_id = %s;"
-                if executeOnDB(sql, (avatar_url, user_id)):
-                    return {
-                        'message': 'Avatar updated successfully', 
-                        'avatar_url': avatar_url
-                    }, 200
-                else:
-                    return {'message': 'Failed to update database'}, 500
-            
-            return {'message': 'File type not allowed'}, 400
-        except Exception as e:
-            print(f"Upload error: {e}")
-            return {'message': 'An error occurred during upload'}, 500
 
 @api.route("/users/search")
 class UserSearch(Resource):
@@ -507,10 +352,11 @@ class LocationalChatrooms(Resource):
             if not chatroom_name or not coords_top_left or not coords_bottom_right:
                 return {'message': 'chatroom_name, coords_top_left, and coords_bottom_right are required'}, 400
 
-            executeOnDB(
+            if not executeOnDB(
                 "INSERT INTO chatrooms(chatroom_type, chatroom_name, coords_top_left, coords_bottom_right, author_id) VALUES ('Locational Chatroom', %s, %s, %s, %s);",
                 (chatroom_name, coords_top_left, coords_bottom_right, author_id)
-            )
+            ):
+                return {'message': 'Failed to save chatroom'}, 500
 
             new_room = queryDB(
                 "SELECT chatroom_id FROM chatrooms WHERE chatroom_name = %s AND chatroom_type = 'Locational Chatroom' ORDER BY chatroom_id DESC LIMIT 1;",
